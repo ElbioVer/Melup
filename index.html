@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_6.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_7.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -462,6 +462,13 @@ a{color:var(--gold);text-decoration:none;}
 
     <!-- TAB ALBUM -->
     <div id="tab-album" class="tab-pane">
+      <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-dark" style="display:flex;align-items:center;gap:6px;" onclick="sincronizarDesdeCloudinary()">
+          🔄 Sincronizar fotos de invitados
+        </button>
+        <span style="font-size:11px;color:var(--soft);">Trae las fotos que subieron los invitados desde sus celulares</span>
+      </div>
+      <div id="sync-status" style="display:none;font-size:12px;color:var(--mid);margin-bottom:12px;padding:10px 14px;background:white;border:1px solid var(--warm);"></div>
       <div class="album-upload-zone">
         <input type="file" accept="image/*,video/*" multiple="" onchange="adminSubir(event)">
         <div class="upload-icon">📸</div>
@@ -547,7 +554,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_6.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_7.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1313,6 +1320,98 @@ function guardarEdicion(){
   renderDashboard();
   // If currently viewing this event, refresh the detail view too
   if(appState.currentId===editingId) abrirEvento(editingId);
+}
+
+// ── SINCRONIZAR DESDE CLOUDINARY ──
+// Requires: Settings > Security > Enable "Resource list" in Cloudinary dashboard
+async function sincronizarDesdeCloudinary(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev){ toast('Abrí un evento primero',true); return; }
+  const statusEl = el('sync-status');
+  statusEl.style.display='block';
+  statusEl.textContent='🔄 Conectando con Cloudinary…';
+
+  const evFolder = encodeURIComponent(ev.name);
+  let totalNew = 0;
+  let totalFetched = 0;
+
+  // Fetch images and videos from the event folder and all subfolders
+  const resourceTypes = ['image','video'];
+  
+  for(const rt of resourceTypes){
+    try{
+      // Fetch from root event folder
+      const url = `https://res.cloudinary.com/${CLD_CLOUD}/${rt}/list/${evFolder}.json`;
+      const res = await fetch(url);
+      if(res.ok){
+        const data = await res.json();
+        const resources = data.resources || [];
+        totalFetched += resources.length;
+        for(const r of resources){
+          const added = agregarMediaDesdeCloudinary(ev, r, rt, null, null);
+          if(added) totalNew++;
+        }
+      }
+      
+      // Fetch from each mesa subfolder
+      for(const mesa of (ev.mesas||[])){
+        const mesaFolder = encodeURIComponent(ev.name+'/'+mesa.name);
+        const urlMesa = `https://res.cloudinary.com/${CLD_CLOUD}/${rt}/list/${mesaFolder}.json`;
+        const resMesa = await fetch(urlMesa);
+        if(resMesa.ok){
+          const dataMesa = await resMesa.json();
+          const resourcesMesa = dataMesa.resources || [];
+          totalFetched += resourcesMesa.length;
+          for(const r of resourcesMesa){
+            // Try to extract author from subfolder structure (EventName/Mesa/Author/file)
+            const parts = (r.public_id||'').split('/');
+            const authorName = parts.length >= 3 ? parts[parts.length-2] : null;
+            const added = agregarMediaDesdeCloudinary(ev, r, rt, mesa.id, mesa.name, authorName);
+            if(added) totalNew++;
+          }
+        }
+      }
+    }catch(err){
+      console.warn('Sync error for '+rt, err);
+    }
+  }
+
+  saveState();
+  renderAlbum();
+  renderStats();
+
+  if(totalFetched === 0){
+    statusEl.innerHTML = '⚠️ <strong>Activá "Resource list" en Cloudinary</strong> para poder sincronizar.<br>'
+      + '<small>Settings → Security → Resource list → Activar → Guardar</small>';
+  } else if(totalNew === 0){
+    statusEl.textContent = '✅ Todo actualizado — ' + totalFetched + ' archivos ya estaban sincronizados.';
+    setTimeout(()=>statusEl.style.display='none', 3000);
+  } else {
+    statusEl.textContent = '✅ '+totalNew+' archivos nuevos sincronizados ('+totalFetched+' total).';
+    setTimeout(()=>statusEl.style.display='none', 3000);
+    toast('✅ '+totalNew+' fotos/videos nuevos encontrados');
+  }
+}
+
+function agregarMediaDesdeCloudinary(ev, resource, type, mesaId, mesaNombre, authorName){
+  const src = resource.secure_url;
+  if(!src) return false;
+  // Skip if already exists in media array
+  const exists = (ev.media||[]).find(m=>m.src===src);
+  if(exists) return false;
+  if(!ev.media) ev.media=[];
+  ev.media.push({
+    id:    uid(),
+    src,
+    type,
+    author:      authorName || 'Invitado',
+    time:        resource.created_at ? new Date(resource.created_at).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}) : '—',
+    mesaId:      mesaId  || null,
+    mesaNombre:  mesaNombre || null,
+    uploadedAt:  resource.created_at ? new Date(resource.created_at).getTime() : Date.now(),
+    fromCloudinary: true
+  });
+  return true;
 }
 
 // INIT

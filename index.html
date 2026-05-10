@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_9.html -->
+<!-- saved from url=(0049)file:///C:/Users/e.verdun/Downloads/index_10.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -554,7 +554,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_9.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_10.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1332,72 +1332,84 @@ async function sincronizarDesdeCloudinary(){
   statusEl.textContent='🔄 Conectando con Cloudinary…';
 
   const evFolder = encodeURIComponent(ev.name);
-  let totalNew = 0;
-  let totalFetched = 0;
-
-  // Fetch images and videos from the event folder and all subfolders
   const resourceTypes = ['image','video'];
-  
+
+  // Collect ALL public_ids that currently exist in Cloudinary
+  const cloudinaryIds = new Set();
+  // Collect all fetched resources to add
+  const toAdd = [];
+  let fetchOk = false;
+
   for(const rt of resourceTypes){
     try{
-      // Fetch from root event folder
+      // Fetch root event folder
       const url = `https://res.cloudinary.com/${CLD_CLOUD}/${rt}/list/${evFolder}.json`;
       const res = await fetch(url);
       if(res.ok){
+        fetchOk = true;
         const data = await res.json();
-        const resources = data.resources || [];
-        totalFetched += resources.length;
-        for(const r of resources){
-          const added = agregarMediaDesdeCloudinary(ev, r, rt, null, null);
-          if(added) totalNew++;
-        }
+        (data.resources||[]).forEach(r=>{
+          if(r.public_id) cloudinaryIds.add(r.public_id);
+          toAdd.push({r, rt, mesaId:null, mesaNombre:null});
+        });
       }
-      
-      // Fetch from each mesa subfolder
+
+      // Fetch each mesa subfolder
       for(const mesa of (ev.mesas||[])){
         const mesaFolder = encodeURIComponent(ev.name+'/'+mesa.name);
         const urlMesa = `https://res.cloudinary.com/${CLD_CLOUD}/${rt}/list/${mesaFolder}.json`;
         const resMesa = await fetch(urlMesa);
         if(resMesa.ok){
+          fetchOk = true;
           const dataMesa = await resMesa.json();
-          const resourcesMesa = dataMesa.resources || [];
-          totalFetched += resourcesMesa.length;
-          for(const r of resourcesMesa){
-            // Try to extract author from subfolder structure (EventName/Mesa/Author/file)
-            const parts = (r.public_id||'').split('/');
-            const authorName = parts.length >= 3 ? parts[parts.length-2] : null;
-            const added = agregarMediaDesdeCloudinary(ev, r, rt, mesa.id, mesa.name, authorName);
-            if(added) totalNew++;
-          }
+          (dataMesa.resources||[]).forEach(r=>{
+            if(r.public_id) cloudinaryIds.add(r.public_id);
+            toAdd.push({r, rt, mesaId:mesa.id, mesaNombre:mesa.name});
+          });
         }
       }
-    }catch(err){
-      console.warn('Sync error for '+rt, err);
-    }
+    }catch(err){ console.warn('Sync error for '+rt, err); }
+  }
+
+  if(!fetchOk){
+    statusEl.innerHTML = '⚠️ <strong>Activá "Resource list" en Cloudinary</strong> para sincronizar.<br>'
+      + '<small>Settings → Security → Resource list → destildar → Guardar</small>';
+    return;
+  }
+
+  // ── LIMPIEZA: eliminar del álbum local los archivos que ya no existen en Cloudinary ──
+  const beforeCount = ev.media.length;
+  ev.media = ev.media.filter(m=>{
+    // Keep items NOT from Cloudinary (uploaded directly by admin to localStorage)
+    if(!m.fromCloudinary) return true;
+    // Keep Cloudinary items that still exist in Cloudinary
+    return m.cloudinaryId && cloudinaryIds.has(m.cloudinaryId);
+  });
+  const removed = beforeCount - ev.media.length;
+
+  // ── AGREGAR: añadir archivos nuevos de Cloudinary ──
+  let totalNew = 0;
+  for(const {r, rt, mesaId, mesaNombre} of toAdd){
+    const added = agregarMediaDesdeCloudinary(ev, r, rt, mesaId, mesaNombre, null);
+    if(added) totalNew++;
   }
 
   saveState();
-
-  // Force re-render with updated media
-  const evAfter = appState.events.find(e=>e.id===appState.currentId);
-  if(evAfter){
-    el('album-count').textContent = evAfter.media.length;
-  }
-  currentAlbumFilter = null; // reset filter to show all
+  currentAlbumFilter = null;
   renderAlbum();
   renderStats();
 
-  if(totalFetched === 0){
-    statusEl.innerHTML = '⚠️ <strong>Activá "Resource list" en Cloudinary</strong> para poder sincronizar.<br>'
-      + '<small>Settings → Security → Resource list → Activar → Guardar</small>';
-  } else if(totalNew === 0){
-    statusEl.textContent = '✅ Todo actualizado — ' + totalFetched + ' archivos ya estaban sincronizados.';
-    setTimeout(()=>statusEl.style.display='none', 3000);
+  // Status message
+  const parts = [];
+  if(totalNew > 0)  parts.push(totalNew+' foto(s)/video(s) nuevos');
+  if(removed > 0)   parts.push(removed+' eliminado(s) de Cloudinary removido(s)');
+  if(parts.length){
+    statusEl.textContent = '✅ ' + parts.join(' · ');
+    toast('🔄 Álbum actualizado');
   } else {
-    statusEl.textContent = '✅ '+totalNew+' archivos nuevos sincronizados ('+totalFetched+' total).';
-    setTimeout(()=>statusEl.style.display='none', 3000);
-    toast('✅ '+totalNew+' fotos/videos nuevos encontrados');
+    statusEl.textContent = '✅ Todo al día — '+cloudinaryIds.size+' archivos en Cloudinary.';
   }
+  setTimeout(()=>statusEl.style.display='none', 4000);
 }
 
 function buildCloudinaryURL(resource, resourceType){

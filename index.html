@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_4.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_5.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -547,7 +547,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_4.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_5.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -729,17 +729,29 @@ function decodeGuestURL(){
 function checkURL(){
   const pub = decodeGuestURL();
   if(!pub||!pub.i||!pub.n) return false;
-  // Find or create event
+
+  // Find or create event in state
   let ev = appState.events.find(e=>e.id===pub.i);
   if(!ev){
-    // Guest device: minimal event object (no dates/desc/mesas needed for upload)
     ev = {
-      id:pub.i, name:pub.n, type:pub.t, template:pub.l,
-      desc:'', start:'', end:'', place:'', mesas:[], media:[]
+      id:pub.i, name:pub.n, type:pub.t||'✦', template:pub.l||'rosa',
+      desc:pub.d||'', start:pub.s||'', end:pub.e||'', place:pub.p||'',
+      mesas:[], media:[]
     };
     appState.events.push(ev);
   }
-  // Mesa name travels in URL — available immediately, no lookup needed
+
+  // If this QR is for a specific mesa, make sure it exists in ev.mesas
+  // so abrirVistaInvitado can find it by ID
+  if(pub.mi && pub.mn){
+    const exists = (ev.mesas||[]).find(m=>m.id===pub.mi);
+    if(!exists){
+      if(!ev.mesas) ev.mesas=[];
+      ev.mesas.push({id:pub.mi, name:pub.mn});
+    }
+  }
+
+  // Store mesa data in state for the upload function
   appState.guestMesaNombre = pub.mn || null;
   appState.guestMesaId     = pub.mi || null;
   abrirVistaInvitado(pub.mi, pub.i);
@@ -1123,11 +1135,18 @@ function abrirVistaInvitado(mesaId,evId){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');gi.style.background=t.bg;gi.textContent=ev.type||t.icon;
   el('g-ev-name').textContent=ev.name;
-  el('g-ev-date').textContent=fmt(ev.start)+' — '+fmt(ev.end);
+  const dateStr = (ev.start||ev.end)
+    ? fmt(ev.start)+' — '+fmt(ev.end)
+    : '';  // hide dates if not available on guest device
+  el('g-ev-date').textContent = dateStr;
+  el('g-ev-date').style.display = dateStr ? 'block' : 'none';
   el('g-welcome').textContent=ev.desc||'Bienvenido/a. Subí tus fotos y videos para compartirlos.';
-  const mesa=mesaId?(ev.mesas||[]).find(m=>m.id===mesaId):null;
-  const mb=el('g-mesa-badge');
-  if(mesa){mb.textContent=mesa.name;mb.style.display='inline-block';}else{mb.style.display='none';}
+  const mesa = mesaId ? (ev.mesas||[]).find(m=>m.id===mesaId) : null;
+  // Fallback: use the mesa name stored directly in state (from QR URL)
+  const mesaNombreDisplay = mesa ? mesa.name : (appState.guestMesaNombre || null);
+  const mb = el('g-mesa-badge');
+  if(mesaNombreDisplay){ mb.textContent=mesaNombreDisplay; mb.style.display='inline-block'; }
+  else { mb.style.display='none'; }
   el('g-previews').style.display='none';el('g-previews').innerHTML='';
   el('g-prog').style.display='none';el('g-name').value='';
   // Show back-to-admin button only when accessed from admin panel

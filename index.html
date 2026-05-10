@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0058)file:///C:/Users/e.verdun/Downloads/momentos-app-v3_2.html -->
+<!-- saved from url=(0058)file:///C:/Users/e.verdun/Downloads/momentos-app-v3_3.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -483,7 +483,7 @@ var QRCode = (function() {
             </div>
           </div>
           <div class="qr-link-box">
-            <span id="event-link-display">momentos.app/e/xxxxx</span>
+            <span id="event-link-display">elbiover.github.io/Melup/</span>
             <button class="copy-btn" onclick="copyLink()">Copiar</button>
           </div>
           <button class="btn-sm" onclick="simulateGuestView()" style="margin-right:8px;">👁 Ver como invitado</button>
@@ -656,7 +656,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'momentos_eventos';</div>
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="file:///C:/Users/e.verdun/Downloads/momentos-app-v3_2.html" alt="" style="display:none;">
+  <img id="lightbox-img" src="file:///C:/Users/e.verdun/Downloads/momentos-app-v3_3.html" alt="" style="display:none;">
   <video id="lightbox-video" controls="" style="display:none;"></video>
   <div class="lightbox-caption" id="lightbox-cap"></div>
 </div>
@@ -720,7 +720,7 @@ const state = {
         {src:'https://picsum.photos/seed/w3/400/400',type:'image',author:'Lucía P.',time:'15:02'},
         {src:'https://picsum.photos/seed/w4/400/400',type:'image',author:'José A.',time:'15:18'},
       ],
-      link: 'momentos.app/e/boda-laura-mateo-2025'
+      link: 'elbiover.github.io/Melup/?evento=demo'
     }
   ],
   currentEvent:    null,
@@ -819,9 +819,9 @@ function openEvent(id){
   // QR tab
   $('info-start').textContent = fmt(start);
   $('info-end').textContent   = fmt(end);
-  const link = ev.link || ('momentos.app/e/'+ev.id);
+  const link = ev.link || ('elbiover.github.io/Melup/?evento='+ev.id);
   $('event-link-display').textContent = link;
-  generateQR('https://'+link.replace(/^https?:\/\//,''));
+  generateQR(link.startsWith('http') ? link : 'https://'+link);
 
   // Info tab
   $('info-event-name').textContent = ev.name;
@@ -950,7 +950,7 @@ function crearEvento(){
     type:     $('ev-type').value,
     template: state.selectedTemplate,
     media:    [],
-    link: 'momentos.app/e/'+name.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'').substring(0,24)+'-'+id
+    link: 'elbiover.github.io/Melup/?evento='+id
   };
   state.events.push(ev);
   showToast('¡Evento "'+name+'" creado!');

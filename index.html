@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_2.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_3.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -574,7 +574,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_2.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_3.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1240,7 +1240,30 @@ function abrirVistaInvitado(mesaId,evId){
     backArea.innerHTML=''; // guests have no back button
   }
   renderGuestAlbum();
+  // Auto-clean: remove any previously stored media that no longer loads
+  validarMediaGuest();
   goTo('guest-view');
+}
+
+async function validarMediaGuest(){
+  const ev = appState.events.find(e=>e.id===appState.guestEvId);
+  if(!ev || !ev.media || !ev.media.length) return;
+  // Only validate Cloudinary URLs (not base64 data URIs)
+  const toCheck = ev.media.filter(m => m.src && m.src.startsWith('http'));
+  if(!toCheck.length) return;
+  let removed = 0;
+  const validSrcs = new Set();
+  await Promise.all(toCheck.map(async m => {
+    try{
+      const r = await fetch(m.src, {method:'HEAD', mode:'no-cors'});
+      validSrcs.add(m.src);
+    }catch(e){
+      // Can't reach — keep it (network issue, not deleted)
+      validSrcs.add(m.src);
+    }
+  }));
+  // Note: with no-cors we can't detect 404, so rely on onerror in img tags
+  // The onerror handler in renderGuestAlbum will remove broken ones when they render
 }
 function gSelArchivos(e){
   const files=Array.from(e.target.files);
@@ -1297,13 +1320,42 @@ function renderGuestAlbum(){
   const ev=appState.events.find(e=>e.id===appState.guestEvId);
   if(!ev) return;
   const sec=el('g-album-section');
-  el('g-album-count').textContent='('+ev.media.length+')';
   if(!ev.media.length){sec.style.display='none';return;}
   sec.style.display='block';
+  el('g-album-count').textContent='('+ev.media.length+')';
   el('g-photo-grid').innerHTML=ev.media.map((m,i)=>{
-    if(m.type==='video') return `<div class="guest-photo"><video src="${m.src}" muted preload="metadata"></video><div class="guest-vid-tag">▶</div></div>`;
-    return `<div class="guest-photo"><img src="${m.src}" loading="lazy"></div>`;
+    if(m.type==='video') return `<div class="guest-photo" data-idx="${i}"><video src="${m.src}" muted preload="metadata" onerror="this.closest('.guest-photo').remove();limpiarMediaRota('${ev.id}')"></video><div class="guest-vid-tag">▶</div></div>`;
+    return `<div class="guest-photo" data-idx="${i}"><img src="${m.src}" loading="lazy" onerror="this.closest('.guest-photo').remove();limpiarMediaRota('${ev.id}')"></div>`;
   }).join('');
+}
+
+// Remove broken media entries from localStorage
+function limpiarMediaRota(evId){
+  const ev = appState.events.find(e=>e.id===evId);
+  if(!ev) return;
+  // Check which imgs/videos failed to load
+  const broken = new Set();
+  document.querySelectorAll('#g-photo-grid .guest-photo').forEach(div=>{
+    const img = div.querySelector('img');
+    const vid = div.querySelector('video');
+    if((img && img.naturalWidth===0 && img.complete) || !div.isConnected){
+      broken.add(div.dataset.idx);
+    }
+  });
+  if(broken.size > 0){
+    ev.media = ev.media.filter((_,i)=>!broken.has(String(i)));
+    saveState();
+  }
+}
+
+// Limpiar TODA la caché local de fotos del evento actual
+function limpiarCacheGuest(){
+  const ev = appState.events.find(e=>e.id===appState.guestEvId);
+  if(!ev){ toast('No hay evento activo',true); return; }
+  ev.media = [];
+  saveState();
+  renderGuestAlbum();
+  toast('✅ Caché de fotos limpiada');
 }
 
 // ── QR GRANDE MODAL ──

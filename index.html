@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_8.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_9.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -554,7 +554,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_8.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_9.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1412,38 +1412,77 @@ function buildCloudinaryURL(resource, resourceType){
   return `https://res.cloudinary.com/${CLD_CLOUD}/${resourceType}/upload/${version}${pidEncoded}${format}`;
 }
 
+function parseFolderPath(pid, evName, evMesas){
+  // Parse Cloudinary public_id to extract mesa and author
+  // Possible structures:
+  //   EventName/filename                      -> {mesa:null, author:null}
+  //   EventName/MesaName/filename             -> {mesa:MesaName, author:null}
+  //   EventName/MesaName/AuthorName/filename  -> {mesa:MesaName, author:AuthorName}
+
+  const parts = pid.split('/');
+  const evSlug = evName || '';
+  let result = {mesaId:null, mesaNombre:null, author:null};
+
+  // Remove the event name prefix (first part)
+  // parts[0] should be the event folder
+  if(parts.length < 2) return result;
+
+  // parts[0] = event folder, parts[-1] = filename
+  // Everything in between = potential mesa / author
+  const middle = parts.slice(1, -1); // strip event folder and filename
+
+  if(middle.length === 0){
+    // EventName/filename -> no mesa, no author
+    return result;
+  }
+
+  if(middle.length >= 1){
+    // First middle part = mesa name
+    const mesaName = decodeURIComponent(middle[0]);
+    // Find matching mesa in event
+    const mesa = (evMesas||[]).find(m=>
+      m.name.toLowerCase() === mesaName.toLowerCase()
+    );
+    result.mesaNombre = mesaName;
+    result.mesaId     = mesa ? mesa.id : null;
+  }
+
+  if(middle.length >= 2){
+    // Second middle part = author name
+    result.author = decodeURIComponent(middle[1]);
+  }
+
+  return result;
+}
+
 function agregarMediaDesdeCloudinary(ev, resource, type, mesaId, mesaNombre, authorName){
   const src = buildCloudinaryURL(resource, type);
   if(!src) return false;
-  // Skip if already exists (check by public_id or src)
   const pid = resource.public_id||'';
+  // Skip if already exists
   const exists = (ev.media||[]).find(m=>m.src===src || m.cloudinaryId===pid);
   if(exists) return false;
   if(!ev.media) ev.media=[];
 
-  // Try to extract author from folder path: EventName/Mesa/AuthorName/file
-  let detectedAuthor = authorName;
-  if(!detectedAuthor && pid){
-    const parts = pid.split('/');
-    // Structure: EventName / MesaName / AuthorName / filename  (4 parts)
-    // OR:        EventName / MesaName / filename               (3 parts, no author)
-    // OR:        EventName / filename                          (2 parts, root)
-    if(parts.length >= 4){
-      detectedAuthor = decodeURIComponent(parts[parts.length-2]);
-    }
-  }
+  // Parse folder path to detect mesa and author automatically
+  const parsed = parseFolderPath(pid, ev.name, ev.mesas);
+
+  // Use parsed values, fall back to passed-in values
+  const finalMesaNombre = parsed.mesaNombre || mesaNombre || null;
+  const finalMesaId     = parsed.mesaId     || mesaId     || null;
+  const finalAuthor     = authorName || parsed.author     || 'Invitado';
 
   ev.media.push({
     id:           uid(),
     src,
     type,
     cloudinaryId: pid,
-    author:       detectedAuthor || 'Invitado',
+    author:       finalAuthor,
     time:         resource.created_at
                     ? new Date(resource.created_at).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})
                     : '—',
-    mesaId:       mesaId     || null,
-    mesaNombre:   mesaNombre || null,
+    mesaId:       finalMesaId,
+    mesaNombre:   finalMesaNombre,
     uploadedAt:   resource.created_at ? new Date(resource.created_at).getTime() : Date.now(),
     fromCloudinary: true
   });

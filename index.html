@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_5.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_6.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -577,7 +577,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_5.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_6.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1573,35 +1573,33 @@ function parseFolderPath(pid, evName, evMesas){
   //   EventName/MesaName/AuthorName/filename  -> {mesa:MesaName, author:AuthorName}
 
   const parts = pid.split('/');
-  const evSlug = evName || '';
   let result = {mesaId:null, mesaNombre:null, author:null};
-
-  // Remove the event name prefix (first part)
-  // parts[0] should be the event folder
   if(parts.length < 2) return result;
 
-  // parts[0] = event folder, parts[-1] = filename
-  // Everything in between = potential mesa / author
   const middle = parts.slice(1, -1); // strip event folder and filename
-
-  if(middle.length === 0){
-    // EventName/filename -> no mesa, no author
-    return result;
-  }
+  if(middle.length === 0) return result;
 
   if(middle.length >= 1){
-    // First middle part = mesa name
     const mesaName = decodeURIComponent(middle[0]);
-    // Find matching mesa in event
-    const mesa = (evMesas||[]).find(m=>
-      m.name.toLowerCase() === mesaName.toLowerCase()
-    );
-    result.mesaNombre = mesaName;
-    result.mesaId     = mesa ? mesa.id : null;
+
+    // Flexible match: try exact → lowercase → normalize numbers (Mesa 01 = Mesa 1)
+    const normalize = s => s.toLowerCase()
+      .replace(/\s+/g,' ').trim()
+      // Remove leading zeros from numbers: "01" -> "1", "Mesa 01" -> "mesa 1"
+      .replace(/(\d+)/g, n => String(parseInt(n,10)));
+
+    const mesaNorm = normalize(mesaName);
+    const mesa = (evMesas||[]).find(m=> {
+      if(m.name.toLowerCase() === mesaName.toLowerCase()) return true; // exact
+      if(normalize(m.name) === mesaNorm) return true; // normalized numbers
+      return false;
+    });
+
+    result.mesaNombre = mesa ? mesa.name : mesaName; // prefer event's official name
+    result.mesaId     = mesa ? mesa.id   : null;
   }
 
   if(middle.length >= 2){
-    // Second middle part = author name
     result.author = decodeURIComponent(middle[1]);
   }
 

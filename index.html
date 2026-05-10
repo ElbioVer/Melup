@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_3.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_4.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -476,14 +476,16 @@ a{color:var(--gold);text-decoration:none;}
       <div class="guest-album-title">Álbum del evento <span id="g-album-count">(0)</span></div>
       <div class="guest-photo-grid" id="g-photo-grid"></div>
     </div>
-    <button onclick="goTo(&#39;home&#39;)" style="background:none;border:none;color:var(--soft);font-size:10px;display:block;text-align:center;margin-top:18px;width:100%;cursor:pointer;">← Volver al inicio</button>
+    <div id="g-back-area" style="text-align:center;margin-top:18px;">
+      <!-- only shown when accessed from admin -->
+    </div>
   </div>
 </div>
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_3.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_4.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -560,41 +562,49 @@ function goTo(screen){
 }
 
 // URL ROUTING
-// Encode event data into URL so ANY device can open it without localStorage
+// Build short QR URL: encode only what's needed in base64
+// Format: BASE_URL#g=SHORT_CODE  (SHORT_CODE encodes evId+mesaId+minimal event info)
 function buildURL(evId, mesaId){
   const ev = appState.events.find(e=>e.id===evId);
   if(!ev) return BASE_URL;
-  // Encode minimal event data needed for guest view
+  const mesa = mesaId ? (ev.mesas||[]).find(m=>m.id===mesaId) : null;
   const pub = {
-    id:ev.id, name:ev.name, desc:ev.desc||'',
-    start:ev.start, end:ev.end, place:ev.place||'',
-    type:ev.type, template:ev.template,
-    mesas:(ev.mesas||[]).map(m=>({id:m.id,name:m.name}))
+    i:ev.id, n:ev.name, d:ev.desc||'',
+    s:ev.start, e:ev.end, p:ev.place||'',
+    t:ev.type, l:ev.template,
+    m:(ev.mesas||[]).map(m=>({i:m.id,n:m.name})),
+    // Embed active mesa directly so guest doesn't need to look it up
+    mi: mesa ? mesa.id : null,
+    mn: mesa ? mesa.name : null
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(pub))));
-  return BASE_URL+'#ev='+encoded+(mesaId?'&mesa='+mesaId:'');
+  return BASE_URL+'#g='+encoded;
 }
 
-function publicarEvento(ev){ /* no-op, data is now in URL */ }
+function publicarEvento(ev){ /* no-op */ }
 
 function checkURL(){
   const hash = window.location.hash.replace('#','');
-  if(!hash) return false;
-  const p = new URLSearchParams(hash);
-  const encoded = p.get('ev');
-  const mesaId  = p.get('mesa');
-  if(!encoded) return false;
+  if(!hash||!hash.startsWith('g=')) return false;
   try{
-    const pub  = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-    if(!pub||!pub.id||!pub.name) return false;
-    // Check if this event already exists in state (admin device)
-    let ev = appState.events.find(e=>e.id===pub.id);
-    if(!ev){
-      // Guest device: create temp event from URL data, media starts empty
-      ev = {...pub, media:[]};
-      appState.events.push(ev);
-    }
-    abrirVistaInvitado(mesaId||null, pub.id);
+    const raw = hash.slice(2);
+    const pub = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!pub||!pub.i||!pub.n) return false;
+    const evData = {
+      id:pub.i, name:pub.n, desc:pub.d||'',
+      start:pub.s, end:pub.e, place:pub.p||'',
+      type:pub.t, template:pub.l,
+      mesas:(pub.m||[]).map(m=>({id:m.i,name:m.n})),
+      media:[]
+    };
+    let ev = appState.events.find(e=>e.id===evData.id);
+    if(!ev){ ev=evData; appState.events.push(ev); }
+    // Mesa comes embedded in the encoded data — use it directly
+    const mesaId   = pub.mi || null;
+    const mesaNombre = pub.mn || null;
+    // Store mesa name directly for upload — no lookup needed
+    appState.guestMesaNombre = mesaNombre;
+    abrirVistaInvitado(mesaId, evData.id);
     return true;
   }catch(e){
     console.warn('URL decode error',e);
@@ -644,6 +654,7 @@ function abrirEvento(id){
   const ev=appState.events.find(e=>e.id===id);
   if(!ev){toast('Evento no encontrado',true);return;}
   appState.currentId=id;
+  ev._fromAdmin=true; // mark so guest view shows back button
   const t=TMPLS[ev.template]||TMPLS.rosa;
   el('d-banner-bg').style.background=t.bg;
   el('d-banner-bg').textContent=ev.type||t.icon;
@@ -953,6 +964,7 @@ function abrirVistaInvitado(mesaId,evId){
   appState.guestEvId=id;
   appState.guestMesaId=mesaId||null;
   appState.guestFiles=[];
+  appState.guestMesaNombre=null;
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');gi.style.background=t.bg;gi.textContent=ev.type||t.icon;
   el('g-ev-name').textContent=ev.name;
@@ -963,6 +975,13 @@ function abrirVistaInvitado(mesaId,evId){
   if(mesa){mb.textContent=mesa.name;mb.style.display='inline-block';}else{mb.style.display='none';}
   el('g-previews').style.display='none';el('g-previews').innerHTML='';
   el('g-prog').style.display='none';el('g-name').value='';
+  // Show back-to-admin button only when accessed from admin panel
+  const backArea = el('g-back-area');
+  if(evId && appState.events.find(e=>e.id===evId && e._fromAdmin)){
+    backArea.innerHTML='<button onclick="goTo(\'dashboard\')" style="background:none;border:none;color:var(--soft);font-size:10px;cursor:pointer;">← Volver al panel admin</button>';
+  } else {
+    backArea.innerHTML=''; // guests have no back button
+  }
   renderGuestAlbum();
   goTo('guest-view');
 }
@@ -990,15 +1009,21 @@ async function gSubir(){
   const ev=appState.events.find(e=>e.id===appState.guestEvId);
   if(!ev){toast('Evento no encontrado',true);return;}
   if(!appState.guestFiles.length){toast('Seleccioná al menos un archivo',true);return;}
-  const mesa=appState.guestMesaId?(ev.mesas||[]).find(m=>m.id===appState.guestMesaId):null;
+  // Get mesa name: from direct storage (QR scan) or by ID lookup (admin preview)
+  let mesaNombreFolder = appState.guestMesaNombre || null;
+  let mesaIdForRecord = appState.guestMesaId || null;
+  if(!mesaNombreFolder && appState.guestMesaId){
+    const mesa = (ev.mesas||[]).find(m=>m.id===appState.guestMesaId);
+    if(mesa){ mesaNombreFolder=mesa.name; mesaIdForRecord=mesa.id; }
+  }
   const prog=el('g-prog'),bar=el('g-prog-bar'),txt=el('g-prog-txt');
   prog.style.display='block';bar.style.width='0%';
   let done=0,total=appState.guestFiles.length;
   for(const {file,type} of appState.guestFiles){
     txt.textContent='Subiendo '+(done+1)+' de '+total+'…';
     try{
-      const src=await subirCloudinary(file,ev.name,mesa?mesa.name:null);
-      ev.media.push({id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesa?mesa.id:null,mesaNombre:mesa?mesa.name:null,uploadedAt:Date.now()});
+      const src=await subirCloudinary(file,ev.name,mesaNombreFolder);
+      ev.media.push({id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now()});
       saveState(); // Save after EACH upload — event never disappears
       publicarEvento(ev); // Update public snapshot
     }catch(err){toast('Error subiendo archivo',true);}

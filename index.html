@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_4.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_1.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -485,7 +485,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_4.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_1.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -840,7 +840,7 @@ async function comprimirImagen(file, maxPx=1920, quality=0.82){
   });
 }
 
-async function subirCloudinary(file,evName,mesaName){
+async function subirCloudinary(file, evName, mesaName, authorName){
   // Comprimir imágenes antes de subir
   let fileToUpload = file;
   if(file.type.startsWith('image/')){
@@ -850,14 +850,24 @@ async function subirCloudinary(file,evName,mesaName){
   if(!CLD_ON){
     return new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(fileToUpload);});
   }
-  let folder=evName;
-  if(mesaName) folder+='/'+mesaName;
-  const fd=new FormData();
-  fd.append('file',fileToUpload);
+  // Folder structure: EventName / MesaName / AuthorName
+  let folder = evName;
+  if(mesaName)   folder += '/' + mesaName;
+  if(authorName && authorName !== 'Invitado') folder += '/' + authorName;
+  const fd = new FormData();
+  fd.append('file',         fileToUpload);
   fd.append('upload_preset',CLD_PRESET);
-  fd.append('folder',folder);
-  const rt=file.type.startsWith('video/')?'video':'image';
-  const res=await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+rt+'/upload',{method:'POST',body:fd});
+  fd.append('folder',       folder);
+  // Add tags for easy filtering in Cloudinary dashboard
+  const tags = [evName];
+  if(mesaName)   tags.push(mesaName);
+  if(authorName) tags.push(authorName);
+  fd.append('tags', tags.join(','));
+  // Add context metadata (shows in Resumen panel)
+  const ctx = 'evento='+evName+(mesaName?'|mesa='+mesaName:'')+(authorName?'|invitado='+authorName:'');
+  fd.append('context', ctx);
+  const rt = file.type.startsWith('video/') ? 'video' : 'image';
+  const res = await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+rt+'/upload',{method:'POST',body:fd});
   if(!res.ok) throw new Error('Upload error '+res.status);
   return (await res.json()).secure_url;
 }
@@ -1022,7 +1032,7 @@ async function gSubir(){
   for(const {file,type} of appState.guestFiles){
     txt.textContent='Subiendo '+(done+1)+' de '+total+'…';
     try{
-      const src=await subirCloudinary(file,ev.name,mesaNombreFolder);
+      const src=await subirCloudinary(file,ev.name,mesaNombreFolder,author);
       ev.media.push({id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now()});
       saveState(); // Save after EACH upload — event never disappears
       publicarEvento(ev); // Update public snapshot

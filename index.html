@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0058)file:///C:/Users/e.verdun/Downloads/momentos-app-v3_2.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Momentos — Álbumes de Eventos</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="./index_files/css2" rel="stylesheet">
+
 <style>
   :root {
     --cream: #FAF7F2;
@@ -294,6 +294,31 @@
     .dates-row { flex-direction:column; gap:12px; }
   }
 </style>
+<script>
+// ─── QR Code generator (sin dependencias externas) ───
+var QRCode = (function() {
+  function QR(container, opts) {
+    var text = opts.text || opts;
+    var size = opts.width || 160;
+    var dark = (opts.colorDark || '#000000').replace('#','');
+    var light = (opts.colorLight || '#ffffff').replace('#','');
+    var encoded = encodeURIComponent(text);
+    var img = document.createElement('img');
+    img.width = size; img.height = size;
+    img.style.display = 'block';
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&data='+encoded+'&color='+dark+'&bgcolor='+light+'&margin=2';
+    img.alt = text;
+    img.onerror = function() {
+      container.innerHTML = '<div style="width:'+size+'px;height:'+size+'px;background:#f0ead8;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9C9080;text-align:center;padding:12px;word-break:break-all;">'+text+'</div>';
+    };
+    container.innerHTML = '';
+    container.appendChild(img);
+    container._img = img;
+  }
+  QR.CorrectLevel = {L:1,M:0,Q:3,H:2};
+  return QR;
+})();
+</script>
 </head>
 <body>
 
@@ -308,7 +333,7 @@
     <h1 class="home-title">Cada momento<br><em>bien guardado</em></h1>
     <p class="home-sub">Crea un álbum para tu evento, comparte el QR con tus invitados y deja que todos suban fotos y videos en un mismo lugar.</p>
     <div class="btn-group">
-      <button class="btn-primary" onclick="goTo('dashboard')">Crear mi evento</button>
+      <button class="btn-primary" onclick="goTo(&#39;dashboard&#39;)">Crear mi evento</button>
       <button class="btn-outline" onclick="simulateGuestView()">Ver como invitado</button>
     </div>
   </div>
@@ -326,21 +351,39 @@
     <div class="dash-logo">momen<span>tos</span></div>
     <div class="dash-actions">
       <button class="btn-sm-ghost" onclick="openFirebaseModal()">☁ Cloudinary</button>
-      <button class="btn-sm-ghost" onclick="goTo('home')">Inicio</button>
-      <button class="btn-sm" onclick="goTo('create')">+ Nuevo evento</button>
+      <button class="btn-sm-ghost" onclick="goTo(&#39;home&#39;)">Inicio</button>
+      <button class="btn-sm" onclick="goTo(&#39;create&#39;)">+ Nuevo evento</button>
     </div>
   </header>
   <div class="dash-content">
     <h1 class="dash-greeting">Mis <em>eventos</em></h1>
     <p class="dash-sub">Gestiona tus álbumes, descarga el QR y comparte con tus invitados.</p>
-    <div class="events-grid" id="events-grid"></div>
+    <div class="events-grid" id="events-grid">
+      <div class="event-card">
+        <div class="event-card-banner" onclick="openEvent(&#39;demo&#39;)" style="cursor:pointer;">
+          <div class="event-card-banner-placeholder" style="background:linear-gradient(135deg,#FAFAFA,#E8E0D8);">💍</div>
+          <div class="event-status status-ended">Finalizado</div>
+        </div>
+        <div class="event-card-body" onclick="openEvent(&#39;demo&#39;)" style="cursor:pointer;">
+          <div class="event-card-name">Boda de Laura &amp; Mateo</div>
+          <div class="event-meta">📅 15 jun 2025<br>📍Hacienda Los Olivos, Jalisco</div>
+          <div class="event-stats">
+            <div class="event-stat"><div class="event-stat-num">4</div><div class="event-stat-label">Fotos</div></div>
+            <div class="event-stat"><div class="event-stat-num">0</div><div class="event-stat-label">Videos</div></div>
+            <div class="event-stat"><div class="event-stat-num">4</div><div class="event-stat-label">Invitados</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 20px;border-top:1px solid var(--warm);display:flex;justify-content:flex-end;">
+          <button onclick="event.stopPropagation();quickDeleteEvent(&#39;demo&#39;)" style="background:none;border:1px solid #FADBD8;color:#C0392B;padding:6px 14px;font-size:12px;cursor:pointer;font-family:&#39;DM Sans&#39;,sans-serif;border-radius:2px;">🗑 Eliminar</button>
+        </div>
+      </div><div class="new-event-card" onclick="goTo(&#39;create&#39;)"><div class="new-event-icon">✦</div><div class="new-event-text">Crear nuevo evento</div></div></div>
   </div>
 </div>
 
 <!-- ═══ CREAR EVENTO ═══ -->
 <div id="create" class="screen">
   <header class="form-header">
-    <button class="back-btn" onclick="goTo('dashboard')">←</button>
+    <button class="back-btn" onclick="goTo(&#39;dashboard&#39;)">←</button>
     <span class="form-header-title">Nuevo evento</span>
   </header>
   <div class="form-body">
@@ -381,14 +424,14 @@
       <div class="form-section-title">Plantilla visual</div>
       <p style="font-size:13px;color:var(--soft);margin-bottom:16px;">Elige el estilo de portada del álbum.</p>
       <div class="templates-grid">
-        <div class="template-card selected" onclick="selectTemplate(this,'rosa')"><div class="template-preview" style="background:linear-gradient(135deg,#F8E1E7,#E8A5B5);"><div class="template-emoji">🌸</div><div style="color:#8B4C5C;font-size:10px;">Rosa Floral</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'dorado')"><div class="template-preview" style="background:linear-gradient(135deg,#FAF0D0,#E8C85A);"><div class="template-emoji">✨</div><div style="color:#7A5C00;font-size:10px;">Dorado Elegante</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'sage')"><div class="template-preview" style="background:linear-gradient(135deg,#E8F0E5,#A8C09A);"><div class="template-emoji">🌿</div><div style="color:#3D5C38;font-size:10px;">Verde Sage</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'noche')"><div class="template-preview" style="background:linear-gradient(135deg,#1A1730,#3D2F6E);"><div class="template-emoji">🌙</div><div style="color:#C5B8F0;font-size:10px;">Noche Estrellada</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'cielo')"><div class="template-preview" style="background:linear-gradient(135deg,#D0E8F5,#7AB5D5);"><div class="template-emoji">☁️</div><div style="color:#1A4A6E;font-size:10px;">Cielo Suave</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'coral')"><div class="template-preview" style="background:linear-gradient(135deg,#FFE4D5,#FF8C6E);"><div class="template-emoji">🎉</div><div style="color:#7A2800;font-size:10px;">Coral Fiesta</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'lavanda')"><div class="template-preview" style="background:linear-gradient(135deg,#EDE0F5,#C5A0E0);"><div class="template-emoji">💜</div><div style="color:#4A2070;font-size:10px;">Lavanda</div></div></div>
-        <div class="template-card" onclick="selectTemplate(this,'boda')"><div class="template-preview" style="background:linear-gradient(135deg,#FAFAFA,#E8E0D8);"><div class="template-emoji">💍</div><div style="color:#5C5449;font-size:10px;">Boda Clásica</div></div></div>
+        <div class="template-card selected" onclick="selectTemplate(this,&#39;rosa&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#F8E1E7,#E8A5B5);"><div class="template-emoji">🌸</div><div style="color:#8B4C5C;font-size:10px;">Rosa Floral</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;dorado&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#FAF0D0,#E8C85A);"><div class="template-emoji">✨</div><div style="color:#7A5C00;font-size:10px;">Dorado Elegante</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;sage&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#E8F0E5,#A8C09A);"><div class="template-emoji">🌿</div><div style="color:#3D5C38;font-size:10px;">Verde Sage</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;noche&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#1A1730,#3D2F6E);"><div class="template-emoji">🌙</div><div style="color:#C5B8F0;font-size:10px;">Noche Estrellada</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;cielo&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#D0E8F5,#7AB5D5);"><div class="template-emoji">☁️</div><div style="color:#1A4A6E;font-size:10px;">Cielo Suave</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;coral&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#FFE4D5,#FF8C6E);"><div class="template-emoji">🎉</div><div style="color:#7A2800;font-size:10px;">Coral Fiesta</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;lavanda&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#EDE0F5,#C5A0E0);"><div class="template-emoji">💜</div><div style="color:#4A2070;font-size:10px;">Lavanda</div></div></div>
+        <div class="template-card" onclick="selectTemplate(this,&#39;boda&#39;)"><div class="template-preview" style="background:linear-gradient(135deg,#FAFAFA,#E8E0D8);"><div class="template-emoji">💍</div><div style="color:#5C5449;font-size:10px;">Boda Clásica</div></div></div>
       </div>
       <div class="canva-link">
         <span class="canva-badge">Canva</span>
@@ -396,7 +439,7 @@
       </div>
     </div>
 
-    <button class="btn-create" onclick="createEvent()">Crear evento y generar QR →</button>
+    <button class="btn-create" onclick="crearEvento()">Crear evento y generar QR →</button>
   </div>
 </div>
 
@@ -407,7 +450,7 @@
       <div class="detail-banner-bg" id="detail-banner-bg"></div>
       <div class="detail-overlay"></div>
       <div class="detail-nav">
-        <button class="detail-back" onclick="goTo('dashboard')">← Mis eventos</button>
+        <button class="detail-back" onclick="goTo(&#39;dashboard&#39;)">← Mis eventos</button>
       </div>
       <div class="detail-title-block">
         <div class="detail-event-name" id="detail-name"></div>
@@ -417,9 +460,9 @@
   </div>
   <div class="detail-body">
     <div class="detail-tabs">
-      <button class="tab-btn active" onclick="switchTab('qr')">QR & Acceso</button>
-      <button class="tab-btn" onclick="switchTab('album')">Álbum <span class="badge" id="photo-count">0</span></button>
-      <button class="tab-btn" onclick="switchTab('info')">Info & Ajustes</button>
+      <button class="tab-btn active" onclick="switchTab(&#39;qr&#39;)">QR &amp; Acceso</button>
+      <button class="tab-btn" onclick="switchTab(&#39;album&#39;)">Álbum <span class="badge" id="photo-count">0</span></button>
+      <button class="tab-btn" onclick="switchTab(&#39;info&#39;)">Info &amp; Ajustes</button>
     </div>
 
     <!-- TAB QR -->
@@ -451,7 +494,7 @@
     <!-- TAB ALBUM -->
     <div id="tab-album" class="tab-content">
       <div class="album-upload-area">
-        <input type="file" accept="image/*,video/*" multiple onchange="addMediaAdmin(event)">
+        <input type="file" accept="image/*,video/*" multiple="" onchange="addMediaAdmin(event)">
         <div class="upload-icon">📸</div>
         <div class="upload-text">Subir fotos y videos al álbum</div>
         <div class="upload-sub">Arrastra o toca para seleccionar</div>
@@ -481,7 +524,7 @@
     <!-- TAB INFO -->
     <div id="tab-info" class="tab-content">
       <div style="background:white;border:1px solid var(--warm);padding:24px;margin-bottom:16px;">
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:16px;" id="info-event-name">—</h3>
+        <h3 style="font-family:&#39;Cormorant Garamond&#39;,serif;font-size:22px;margin-bottom:16px;" id="info-event-name">—</h3>
         <div style="font-size:13px;color:var(--mid);line-height:1.8;margin-bottom:12px;" id="info-desc">—</div>
         <div style="font-size:13px;color:var(--soft);" id="info-place">—</div>
       </div>
@@ -521,7 +564,7 @@
     </div>
 
     <div class="guest-upload-area">
-      <input type="file" accept="image/*,video/*" multiple onchange="guestSelectMedia(event)">
+      <input type="file" accept="image/*,video/*" multiple="" onchange="guestSelectMedia(event)">
       <div class="guest-upload-icon">📷</div>
       <div class="guest-upload-text">Toca para seleccionar fotos o videos</div>
       <div class="guest-upload-sub">Sin límite de cantidad</div>
@@ -545,7 +588,7 @@
       <div class="guest-photo-grid" id="guest-photo-grid"></div>
     </div>
 
-    <button onclick="goTo('home')" style="background:none;border:none;color:var(--soft);font-size:12px;display:block;text-align:center;margin-top:28px;cursor:pointer;width:100%;">← Volver al inicio</button>
+    <button onclick="goTo(&#39;home&#39;)" style="background:none;border:none;color:var(--soft);font-size:12px;display:block;text-align:center;margin-top:28px;cursor:pointer;width:100%;">← Volver al inicio</button>
   </div>
 </div>
 
@@ -598,7 +641,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'momentos_eventos';</div>
         <div class="step-num">5</div>
         <div class="step-title">Eliminar archivos de un evento</div>
         <div class="step-text">Cuando quieras borrar todos los archivos de un evento de Cloudinary:</div>
-        <div class="step-text">1. Entrá a <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> → <strong>Media Library</strong><br>2. Abrí la carpeta <strong>momentos</strong> → subcarpeta con el ID del evento<br>3. Seleccioná todos los archivos → <strong>Delete</strong></div>
+        <div class="step-text">1. Entrá a <a href="https://cloudinary.com/" target="_blank">cloudinary.com</a> → <strong>Media Library</strong><br>2. Abrí la carpeta <strong>momentos</strong> → subcarpeta con el ID del evento<br>3. Seleccioná todos los archivos → <strong>Delete</strong></div>
         <div class="step-note">💡 El botón "Eliminar evento" en la app borra el evento de tu lista. Para liberar espacio en Cloudinary, hacé este paso adicional.</div>
       </div>
 
@@ -613,8 +656,8 @@ const CLOUDINARY_UPLOAD_PRESET = 'momentos_eventos';</div>
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="" style="display:none;">
-  <video id="lightbox-video" controls style="display:none;"></video>
+  <img id="lightbox-img" src="file:///C:/Users/e.verdun/Downloads/momentos-app-v3_2.html" alt="" style="display:none;">
+  <video id="lightbox-video" controls="" style="display:none;"></video>
   <div class="lightbox-caption" id="lightbox-cap"></div>
 </div>
 
@@ -843,11 +886,12 @@ function generateQR(url){
   }
 }
 function downloadQR(){
-  const canvas = document.querySelector('#qr-canvas canvas');
-  if(!canvas){ showToast('No se pudo generar el QR',true); return; }
+  const img = document.querySelector('#qr-canvas img');
+  if(!img){ showToast('No se pudo generar el QR',true); return; }
   const a = document.createElement('a');
-  a.href = canvas.toDataURL();
+  a.href = img.src;
   a.download = 'qr-'+(state.currentEvent?.id||'evento')+'.png';
+  a.target = '_blank';
   a.click();
   showToast('QR descargado ✓');
 }
@@ -887,7 +931,8 @@ function selectTemplate(el, name){
   el.classList.add('selected');
   state.selectedTemplate = name;
 }
-function createEvent(){
+function crearEvento(){
+  console.log('crearEvento called');
   const name  = $('ev-name').value.trim();
   const start = $('ev-start').value;
   const end   = $('ev-end').value;
@@ -1086,5 +1131,6 @@ function closeFirebaseModal() { $('firebase-modal').classList.remove('open'); }
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', function(){ renderDashboard(); });
 </script>
-</body>
-</html>
+
+
+</body></html>

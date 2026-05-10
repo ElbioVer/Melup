@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_2.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_3.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -292,23 +292,7 @@ a{color:var(--gold);text-decoration:none;}
   <div class="dash-body">
     <h1 class="page-h">Mis <em>eventos</em></h1>
     <p class="page-sub">Panel de administrador — solo vos ves esta sección.</p>
-    <div class="events-grid" id="events-grid"><div class="ev-card">
-      <div class="ev-banner" onclick="abrirEvento(&#39;emoz2eod0g12&#39;)" style="background:linear-gradient(135deg,#EDE0F5,#C5A0E0);">🎂<div class="ev-status s-upcoming">Próximo</div></div>
-      <div class="ev-body" onclick="abrirEvento(&#39;emoz2eod0g12&#39;)">
-        <div class="ev-name">15 años de Melanie</div>
-        <div class="ev-meta">📅 24 oct 2026<br>📍Salón JCP, Jose c Paz</div>
-        <div class="ev-stats">
-          <div><div class="ev-snum">1</div><div class="ev-slbl">Fotos</div></div>
-          <div><div class="ev-snum">0</div><div class="ev-slbl">Videos</div></div>
-          <div><div class="ev-snum">1</div><div class="ev-slbl">Invitados</div></div>
-          <div><div class="ev-snum">1</div><div class="ev-slbl">Mesas/QR</div></div>
-        </div>
-      </div>
-      <div class="ev-actions">
-        <button class="btn btn-outline-gold btn-sm" onclick="abrirVistaInvitado(null,&#39;emoz2eod0g12&#39;)">👁 Ver como invitado</button>
-        <button class="btn btn-danger btn-sm" onclick="confirmarEliminarId(&#39;emoz2eod0g12&#39;)">🗑</button>
-      </div>
-    </div><div class="new-card" onclick="goTo(&#39;create-event&#39;)"><div class="new-card-icon">✦</div><div class="new-card-txt">Crear nuevo evento</div></div></div>
+    <div class="events-grid" id="events-grid"></div>
   </div>
 </div>
 
@@ -363,21 +347,21 @@ a{color:var(--gold);text-decoration:none;}
 <!-- EVENT DETAIL -->
 <div id="event-detail" class="screen">
   <div class="detail-banner">
-    <div class="detail-banner-bg" id="d-banner-bg" style="background: linear-gradient(135deg, rgb(237, 224, 245), rgb(197, 160, 224));">🎂</div>
+    <div class="detail-banner-bg" id="d-banner-bg"></div>
     <div class="detail-overlay"></div>
     <div class="detail-nav">
       <button class="detail-back" onclick="goTo(&#39;dashboard&#39;)">← Mis eventos</button>
       <button class="btn btn-gold btn-sm" onclick="abrirVistaInvitado(null)">👁 Vista invitado</button>
     </div>
     <div class="detail-title">
-      <div class="detail-ev-name" id="d-ev-name">15 años de Melanie</div>
-      <div class="detail-ev-date" id="d-ev-date">24 de octubre de 2026 → 25 de octubre de 2026</div>
+      <div class="detail-ev-name" id="d-ev-name"></div>
+      <div class="detail-ev-date" id="d-ev-date"></div>
     </div>
   </div>
   <div class="detail-body">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab(&#39;qrs&#39;)">QR &amp; Mesas</button>
-      <button class="tab-btn" onclick="switchTab(&#39;album&#39;)">Álbum <span class="badge" id="album-count">1</span></button>
+      <button class="tab-btn" onclick="switchTab(&#39;album&#39;)">Álbum <span class="badge" id="album-count">0</span></button>
       <button class="tab-btn" onclick="switchTab(&#39;stats&#39;)">Estadísticas</button>
       <button class="tab-btn" onclick="switchTab(&#39;info&#39;)">Info &amp; Ajustes</button>
     </div>
@@ -387,19 +371,19 @@ a{color:var(--gold);text-decoration:none;}
       <div class="qr-panel-grid">
         <div class="qr-box">
           <div class="qr-box-title">QR General</div>
-          <div id="qr-main-canvas"><img width="160" height="160" src="./index_files/saved_resource" alt="https://elbiover.github.io/Melup/#ev=eyJpZCI6ImVtb3oyZW9kMGcxMiIsIm5hbWUiOiIxNSBhw7FvcyBkZSBNZWxhbmllIiwiZGVzYyI6IlVuYSBub2NoZSBsbGVuYSBkZSBhbW9yLCBhYnJhem9zIHkgcmVjdWVyZG9zIHF1ZSBxdWVkYXLDoW4gcGFyYSBzaWVtcHJlIGVuIG51ZXN0cmEgZmFtaWxpYSDinKgiLCJzdGFydCI6IjIwMjYtMTAtMjRUMTk6MDAiLCJlbmQiOiIyMDI2LTEwLTI1VDA2OjAwIiwicGxhY2UiOiJTYWzDs24gSkNQLCBKb3NlIGMgUGF6IiwidHlwZSI6IvCfjoIiLCJ0ZW1wbGF0ZSI6ImxhdmFuZGEiLCJtZXNhcyI6W3siaWQiOiJlbW96Mzc0ZDJraXgiLCJuYW1lIjoiRmFtaWxpYSJ9XX0=" style="display: block;"></div>
+          <div id="qr-main-canvas"></div>
           <button class="btn btn-dark btn-sm" style="width:100%;" onclick="dlQR(&#39;qr-main-canvas&#39;,&#39;evento-general&#39;)">↓ Descargar</button>
         </div>
         <div class="qr-info">
           <h3>Acceso al evento</h3>
           <p>Compartí este QR o link para que los invitados accedan al álbum. También podés crear QR específicos por mesa abajo.</p>
           <div class="dates-row">
-            <div class="date-item"><label>Desde</label><span id="d-start">24 de octubre de 2026</span></div>
-            <div class="date-item"><label>Hasta</label><span id="d-end">25 de octubre de 2026</span></div>
+            <div class="date-item"><label>Desde</label><span id="d-start"></span></div>
+            <div class="date-item"><label>Hasta</label><span id="d-end"></span></div>
           </div>
-          <div class="link-row"><span id="d-link-main">https://elbiover.github.io/Melup/#ev=eyJpZCI6ImVtb3oyZW9kMGcxMiIsIm5hbWUiOiIxNSBhw7FvcyBkZSBNZWxhbmllIiwiZGVzYyI6IlVuYSBub2NoZSBsbGVuYSBkZSBhbW9yLCBhYnJhem9zIHkgcmVjdWVyZG9zIHF1ZSBxdWVkYXLDoW4gcGFyYSBzaWVtcHJlIGVuIG51ZXN0cmEgZmFtaWxpYSDinKgiLCJzdGFydCI6IjIwMjYtMTAtMjRUMTk6MDAiLCJlbmQiOiIyMDI2LTEwLTI1VDA2OjAwIiwicGxhY2UiOiJTYWzDs24gSkNQLCBKb3NlIGMgUGF6IiwidHlwZSI6IvCfjoIiLCJ0ZW1wbGF0ZSI6ImxhdmFuZGEiLCJtZXNhcyI6W3siaWQiOiJlbW96Mzc0ZDJraXgiLCJuYW1lIjoiRmFtaWxpYSJ9XX0=</span><button class="copy-btn" onclick="copiarLinkEl(&#39;d-link-main&#39;)">Copiar</button></div>
+          <div class="link-row"><span id="d-link-main"></span><button class="copy-btn" onclick="copiarLinkEl(&#39;d-link-main&#39;)">Copiar</button></div>
           <div style="background:var(--gold-l);border:1px solid var(--gold);padding:12px 14px;font-size:11px;color:var(--dark2);line-height:1.7;">
-            <strong>💡 Código del evento:</strong> <span id="d-ev-code" style="font-size:15px;font-weight:700;letter-spacing:.1em;">OD0G12</span><br>
+            <strong>💡 Código del evento:</strong> <span id="d-ev-code" style="font-size:15px;font-weight:700;letter-spacing:.1em;"></span><br>
             Si el QR no abre el evento directamente, los invitados pueden ingresar este código en la app.
           </div>
         </div>
@@ -410,18 +394,7 @@ a{color:var(--gold);text-decoration:none;}
           <input type="text" id="new-mesa-name" placeholder="ej. Mesa 1, Familia, VIP..." maxlength="40" onkeydown="if(event.key===&#39;Enter&#39;)agregarMesa()">
           <button class="btn btn-gold" onclick="agregarMesa()">+ Agregar mesa</button>
         </div>
-        <div class="qr-list" id="qr-list"><div class="qr-item">
-      <div class="qr-item-qr" id="qrm-emoz374d2kix" style="width:72px;height:72px;"><img width="72" height="72" src="./index_files/saved_resource(1)" alt="https://elbiover.github.io/Melup/#ev=eyJpZCI6ImVtb3oyZW9kMGcxMiIsIm5hbWUiOiIxNSBhw7FvcyBkZSBNZWxhbmllIiwiZGVzYyI6IlVuYSBub2NoZSBsbGVuYSBkZSBhbW9yLCBhYnJhem9zIHkgcmVjdWVyZG9zIHF1ZSBxdWVkYXLDoW4gcGFyYSBzaWVtcHJlIGVuIG51ZXN0cmEgZmFtaWxpYSDinKgiLCJzdGFydCI6IjIwMjYtMTAtMjRUMTk6MDAiLCJlbmQiOiIyMDI2LTEwLTI1VDA2OjAwIiwicGxhY2UiOiJTYWzDs24gSkNQLCBKb3NlIGMgUGF6IiwidHlwZSI6IvCfjoIiLCJ0ZW1wbGF0ZSI6ImxhdmFuZGEiLCJtZXNhcyI6W3siaWQiOiJlbW96Mzc0ZDJraXgiLCJuYW1lIjoiRmFtaWxpYSJ9XX0=&amp;mesa=emoz374d2kix" style="display: block;"></div>
-      <div class="qr-item-info">
-        <div class="qr-item-name">Familia<span class="qr-badge">0 archivos</span></div>
-        <div class="qr-item-url">https://elbiover.github.io/Melup/#ev=eyJpZCI6ImVtb3oyZW9kMGcxMiIsIm5hbWUiOiIxNSBhw7FvcyBkZSBNZWxhbmllIiwiZGVzYyI6IlVuYSBub2NoZSBsbGVuYSBkZSBhbW9yLCBhYnJhem9zIHkgcmVjdWVyZG9zIHF1ZSBxdWVkYXLDoW4gcGFyYSBzaWVtcHJlIGVuIG51ZXN0cmEgZmFtaWxpYSDinKgiLCJzdGFydCI6IjIwMjYtMTAtMjRUMTk6MDAiLCJlbmQiOiIyMDI2LTEwLTI1VDA2OjAwIiwicGxhY2UiOiJTYWzDs24gSkNQLCBKb3NlIGMgUGF6IiwidHlwZSI6IvCfjoIiLCJ0ZW1wbGF0ZSI6ImxhdmFuZGEiLCJtZXNhcyI6W3siaWQiOiJlbW96Mzc0ZDJraXgiLCJuYW1lIjoiRmFtaWxpYSJ9XX0=&amp;mesa=emoz374d2kix</div>
-      </div>
-      <div class="qr-item-actions">
-        <button class="btn btn-ghost btn-sm" style="color:var(--gold);" onclick="copiarStr(&#39;https://elbiover.github.io/Melup/#ev=eyJpZCI6ImVtb3oyZW9kMGcxMiIsIm5hbWUiOiIxNSBhw7FvcyBkZSBNZWxhbmllIiwiZGVzYyI6IlVuYSBub2NoZSBsbGVuYSBkZSBhbW9yLCBhYnJhem9zIHkgcmVjdWVyZG9zIHF1ZSBxdWVkYXLDoW4gcGFyYSBzaWVtcHJlIGVuIG51ZXN0cmEgZmFtaWxpYSDinKgiLCJzdGFydCI6IjIwMjYtMTAtMjRUMTk6MDAiLCJlbmQiOiIyMDI2LTEwLTI1VDA2OjAwIiwicGxhY2UiOiJTYWzDs24gSkNQLCBKb3NlIGMgUGF6IiwidHlwZSI6IvCfjoIiLCJ0ZW1wbGF0ZSI6ImxhdmFuZGEiLCJtZXNhcyI6W3siaWQiOiJlbW96Mzc0ZDJraXgiLCJuYW1lIjoiRmFtaWxpYSJ9XX0=&amp;mesa=emoz374d2kix&#39;)">📋</button>
-        <button class="btn btn-dark btn-sm" onclick="dlQR(&#39;qrm-emoz374d2kix&#39;,&#39;Familia&#39;)">↓ QR</button>
-        <button class="btn btn-danger btn-sm" onclick="eliminarMesa(&#39;emoz374d2kix&#39;)">🗑</button>
-      </div>
-    </div></div>
+        <div class="qr-list" id="qr-list"></div>
       </div>
     </div>
 
@@ -437,27 +410,27 @@ a{color:var(--gold);text-decoration:none;}
         <div class="prog-label"><span id="admin-prog-lbl">Subiendo…</span><span id="admin-prog-pct">0%</span></div>
         <div class="prog-track"><div class="prog-fill" id="admin-prog-bar"></div></div>
       </div>
-      <div class="filter-bar" id="album-filters"><button class="filter-btn active" onclick="renderAlbum(null)">Todos (1)</button><button class="filter-btn" onclick="renderAlbum(&#39;emoz374d2kix&#39;)">Familia (0)</button><button class="filter-btn" onclick="renderAlbum(&#39;__none__&#39;)">Sin mesa (1)</button></div>
-      <div class="album-grid" id="album-grid"><div class="media-item" onclick="abrirLB(0)"><img src="./index_files/spnj1sas94hxhn3vjuj9.jpg" loading="lazy"><div class="media-overlay">Elbio Verdun</div></div></div>
+      <div class="filter-bar" id="album-filters"></div>
+      <div class="album-grid" id="album-grid"></div>
     </div>
 
     <!-- TAB STATS -->
     <div id="tab-stats" class="tab-pane">
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="st-total">1</div><div class="stat-lbl">Archivos</div></div>
-        <div class="stat-card"><div class="stat-num" id="st-photos">1</div><div class="stat-lbl">Fotos</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-total">0</div><div class="stat-lbl">Archivos</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-photos">0</div><div class="stat-lbl">Fotos</div></div>
         <div class="stat-card"><div class="stat-num" id="st-videos">0</div><div class="stat-lbl">Videos</div></div>
-        <div class="stat-card"><div class="stat-num" id="st-guests">1</div><div class="stat-lbl">Invitados</div></div>
+        <div class="stat-card"><div class="stat-num" id="st-guests">0</div><div class="stat-lbl">Invitados</div></div>
       </div>
-      <div id="stats-by-mesa"><div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin-bottom:10px;">Por mesa</div><table class="mesa-table"><thead><tr><th>Mesa</th><th>Fotos</th><th>Videos</th><th>Invitados</th></tr></thead><tbody><tr><td><strong>Familia</strong></td><td>0</td><td>0</td><td>0</td></tr></tbody></table></div>
+      <div id="stats-by-mesa"></div>
     </div>
 
     <!-- TAB INFO -->
     <div id="tab-info" class="tab-pane">
       <div style="background:white;border:1px solid var(--warm);padding:18px;margin-bottom:12px;">
-        <div style="font-family:&#39;Cormorant Garamond&#39;,serif;font-size:19px;margin-bottom:10px;" id="info-ev-name">15 años de Melanie</div>
-        <div style="font-size:11px;color:var(--mid);line-height:1.8;" id="info-ev-desc">Una noche llena de amor, abrazos y recuerdos que quedarán para siempre en nuestra familia ✨</div>
-        <div style="font-size:11px;color:var(--soft);margin-top:7px;" id="info-ev-place">📍 Salón JCP, Jose c Paz</div>
+        <div style="font-family:&#39;Cormorant Garamond&#39;,serif;font-size:19px;margin-bottom:10px;" id="info-ev-name"></div>
+        <div style="font-size:11px;color:var(--mid);line-height:1.8;" id="info-ev-desc"></div>
+        <div style="font-size:11px;color:var(--soft);margin-top:7px;" id="info-ev-place"></div>
       </div>
       <div class="danger-zone">
         <h4>⚠ Zona de peligro</h4>
@@ -510,7 +483,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_2.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_3.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_2.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_3.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -485,7 +485,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_2.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_3.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -625,9 +625,11 @@ function buildURL(evId, mesaId){
     mn: mesa ? mesa.name : null
   };
   const json = JSON.stringify(pub, null, 0);
-  // urlsafe base64 without padding
-  const b64 = btoa(unescape(encodeURIComponent(json)))
-    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  // True UTF-8 base64 — no URL-encoding overhead, much shorter URL
+  const bytes = new TextEncoder().encode(json);
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  const b64 = btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
   return BASE_URL + '#g=' + b64;
 }
 
@@ -637,10 +639,14 @@ function decodeGuestURL(){
   const hash = window.location.hash.replace('#','');
   if(!hash||!hash.startsWith('g=')) return null;
   try{
-    // Restore urlsafe base64 padding
     let b64 = hash.slice(2).replace(/-/g,'+').replace(/_/g,'/');
     while(b64.length%4) b64+='=';
-    const pub = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    // Decode as true UTF-8 bytes
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    const json = new TextDecoder().decode(bytes);
+    const pub = JSON.parse(json);
     return pub||null;
   }catch(e){ console.warn('URL decode error',e); return null; }
 }
@@ -723,7 +729,7 @@ function abrirEvento(id){
   el('info-ev-desc').textContent=ev.desc||'Sin descripción.';
   el('info-ev-place').textContent=ev.place?'📍 '+ev.place:'';
   el('qr-main-canvas').innerHTML='';
-  new QRCode(el('qr-main-canvas'),{text:mainURL,width:160,height:160,colorDark:'#1A1712',colorLight:'#FAF7F2'});
+  new QRCode(el('qr-main-canvas'),{text:mainURL,width:180,height:180,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
   publicarEvento(ev); // Save public snapshot for guests
   renderMesas();
   renderAlbum();
@@ -803,7 +809,7 @@ function renderMesas(){
     setTimeout(()=>{
       const c=el('qrm-'+m.id);
       if(c&&!c.querySelector('img')){
-        new QRCode(c,{text:buildURL(ev.id,m.id),width:72,height:72,colorDark:'#1A1712',colorLight:'#FAF7F2'});
+        new QRCode(c,{text:buildURL(ev.id,m.id),width:72,height:72,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
       }
     },80);
   });

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_7.html -->
+<!-- saved from url=(0048)file:///C:/Users/e.verdun/Downloads/index_8.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -554,7 +554,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_7.html" style="display:none;">
+  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_8.html" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1377,6 +1377,13 @@ async function sincronizarDesdeCloudinary(){
   }
 
   saveState();
+
+  // Force re-render with updated media
+  const evAfter = appState.events.find(e=>e.id===appState.currentId);
+  if(evAfter){
+    el('album-count').textContent = evAfter.media.length;
+  }
+  currentAlbumFilter = null; // reset filter to show all
   renderAlbum();
   renderStats();
 
@@ -1393,22 +1400,51 @@ async function sincronizarDesdeCloudinary(){
   }
 }
 
+function buildCloudinaryURL(resource, resourceType){
+  // Cloudinary list API may or may not include secure_url
+  if(resource.secure_url) return resource.secure_url;
+  // Build it from parts: public_id, version, format
+  const pid     = resource.public_id || '';
+  const version = resource.version   ? 'v'+resource.version+'/' : '';
+  const format  = resource.format    ? '.'+resource.format : '';
+  // Encode each path segment separately (don't encode slashes)
+  const pidEncoded = pid.split('/').map(s=>encodeURIComponent(s)).join('/');
+  return `https://res.cloudinary.com/${CLD_CLOUD}/${resourceType}/upload/${version}${pidEncoded}${format}`;
+}
+
 function agregarMediaDesdeCloudinary(ev, resource, type, mesaId, mesaNombre, authorName){
-  const src = resource.secure_url;
+  const src = buildCloudinaryURL(resource, type);
   if(!src) return false;
-  // Skip if already exists in media array
-  const exists = (ev.media||[]).find(m=>m.src===src);
+  // Skip if already exists (check by public_id or src)
+  const pid = resource.public_id||'';
+  const exists = (ev.media||[]).find(m=>m.src===src || m.cloudinaryId===pid);
   if(exists) return false;
   if(!ev.media) ev.media=[];
+
+  // Try to extract author from folder path: EventName/Mesa/AuthorName/file
+  let detectedAuthor = authorName;
+  if(!detectedAuthor && pid){
+    const parts = pid.split('/');
+    // Structure: EventName / MesaName / AuthorName / filename  (4 parts)
+    // OR:        EventName / MesaName / filename               (3 parts, no author)
+    // OR:        EventName / filename                          (2 parts, root)
+    if(parts.length >= 4){
+      detectedAuthor = decodeURIComponent(parts[parts.length-2]);
+    }
+  }
+
   ev.media.push({
-    id:    uid(),
+    id:           uid(),
     src,
     type,
-    author:      authorName || 'Invitado',
-    time:        resource.created_at ? new Date(resource.created_at).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}) : '—',
-    mesaId:      mesaId  || null,
-    mesaNombre:  mesaNombre || null,
-    uploadedAt:  resource.created_at ? new Date(resource.created_at).getTime() : Date.now(),
+    cloudinaryId: pid,
+    author:       detectedAuthor || 'Invitado',
+    time:         resource.created_at
+                    ? new Date(resource.created_at).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})
+                    : '—',
+    mesaId:       mesaId     || null,
+    mesaNombre:   mesaNombre || null,
+    uploadedAt:   resource.created_at ? new Date(resource.created_at).getTime() : Date.now(),
     fromCloudinary: true
   });
   return true;

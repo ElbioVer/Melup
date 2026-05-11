@@ -802,22 +802,34 @@ async function hacerLogin(){
   const err   = el('login-err');
   if(!email||!pass){ err.textContent='Completá email y contraseña.'; return; }
   btn.disabled=true; btn.textContent='Ingresando...'; err.textContent='';
-  const { error } = await sb.auth.signInWithPassword({ email, password:pass });
-  if(error){
-    const msgs={
-      'Invalid login credentials':'Email o contraseña incorrectos.',
-      'Email not confirmed':'Confirmá tu email primero.',
-      'Too many requests':'Demasiados intentos. Esperá unos minutos.',
-    };
-    err.textContent = msgs[error.message]||error.message;
+  try{
+    const { data, error } = await sb.auth.signInWithPassword({ email, password:pass });
+    if(error){
+      const msgs={
+        'Invalid login credentials':'Email o contraseña incorrectos.',
+        'Email not confirmed':'Confirmá tu email primero.',
+        'Too many requests':'Demasiados intentos. Esperá unos minutos.',
+      };
+      err.textContent = msgs[error.message]||error.message;
+      btn.disabled=false; btn.textContent='Ingresar →';
+      return;
+    }
+    // Login OK
+    sbUser = data.user;
+    btn.textContent='Cargando...';
+    await sbLoadEvents();
+    startRealtime();
+    goTo('dashboard');
+  }catch(e){
+    err.textContent='Error de conexión. Intentá de nuevo.';
     btn.disabled=false; btn.textContent='Ingresar →';
   }
-  // onAuthStateChange will handle the rest
 }
 
 async function cerrarSesion(){
   stopRealtime();
-  await sb.auth.signOut();
+  try{ await sb.auth.signOut(); }catch(e){}
+  try{ localStorage.removeItem('sb-ztkhdjhbmdmlbpbmsqcg-auth-token'); }catch(e){}
   sbUser=null;
   appState.events=[];
   mostrarLogin();
@@ -1996,55 +2008,48 @@ if(_origDelMedia){
 //  INIT — auth state listener
 // ══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async ()=>{
-  mostrarLoading('Conectando con Melup...');
+  mostrarLoading('Conectando...');
 
-  // Safety timeout: if loading takes more than 6 seconds, show login
+  // Safety timeout: 5 seconds max, then show login
   const safetyTimer = setTimeout(()=>{
     ocultarLoading();
     if(!checkURL()) mostrarLogin();
-  }, 6000);
+  }, 5000);
 
-  // Listen for auth changes
-  sb.auth.onAuthStateChange(async (event, session)=>{
-    // Handle token errors — clear session and show login
-    if(event === 'TOKEN_REFRESHED' && !session){
-      clearTimeout(safetyTimer);
-      await sb.auth.signOut();
-      ocultarLoading();
-      if(!checkURL()) mostrarLogin();
-      return;
-    }
-    sbUser = session?.user || null;
-    if(sbUser){
-      clearTimeout(safetyTimer);
-      await sbLoadEvents();
-      startRealtime();
-      ocultarLoading();
-      if(!checkURL()) goTo('dashboard');
-    } else {
-      if(event === 'SIGNED_OUT' || event === 'INITIAL_SESSION'){
-        clearTimeout(safetyTimer);
-        stopRealtime();
-        ocultarLoading();
-        if(!checkURL()) mostrarLogin();
-      }
-    }
-  });
-
-  // Get current session — if refresh fails, catch and show login
-  try{
-    const { data:{ session }, error } = await sb.auth.getSession();
-    if(error || !session){
-      clearTimeout(safetyTimer);
-      // Clear any bad stored tokens
-      try{ await sb.auth.signOut(); }catch(e){}
-      ocultarLoading();
-      if(!checkURL()) mostrarLogin();
-    }
-  }catch(e){
+  // If this is a guest URL (QR scan), skip auth entirely
+  if(checkURL()){
     clearTimeout(safetyTimer);
     ocultarLoading();
-    if(!checkURL()) mostrarLogin();
+    return;
+  }
+
+  // Try to get existing valid session
+  try{
+    const { data:{ session }, error } = await sb.auth.getSession();
+
+    if(error || !session || !session.user){
+      // No valid session — clear any stale tokens and show login
+      clearTimeout(safetyTimer);
+      try{ localStorage.removeItem('sb-ztkhdjhbmdmlbpbmsqcg-auth-token'); }catch(e){}
+      try{ await sb.auth.signOut(); }catch(e){}
+      ocultarLoading();
+      mostrarLogin();
+      return;
+    }
+
+    // Valid session found
+    sbUser = session.user;
+    clearTimeout(safetyTimer);
+    await sbLoadEvents();
+    startRealtime();
+    ocultarLoading();
+    goTo('dashboard');
+
+  }catch(e){
+    clearTimeout(safetyTimer);
+    try{ await sb.auth.signOut(); }catch(e2){}
+    ocultarLoading();
+    mostrarLogin();
   }
 });
 </script>

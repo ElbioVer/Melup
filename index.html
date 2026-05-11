@@ -16,8 +16,8 @@
 //  CONFIGURACIÓN SUPABASE — Reemplazá con tus datos
 //  Encontrás estos valores en: Project Settings → API
 // ══════════════════════════════════════════════════════════════
-const SUPABASE_URL  = 'https://TU_PROJECT.supabase.co';
-const SUPABASE_ANON = 'TU_ANON_KEY';
+const SUPABASE_URL  = 'https://ztkhdjhbmdmlbpbmsqcg.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_pkNUhB6-bsL9mP7gvaXZLw_pw8FOJnr';
 // ══════════════════════════════════════════════════════════════
 
 const { createClient } = supabase;
@@ -679,7 +679,7 @@ a{color:var(--gold);text-decoration:none;}
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="cierraLB(event)">
   <button class="lb-close" onclick="cierraLB()">✕</button>
-  <img id="lb-img" src="file:///C:/Users/e.verdun/Downloads/index_7.html" style="display:none;">
+  <img id="lb-img" src="" style="display:none;">
   <video id="lb-vid" controls="" style="display:none;"></video>
   <div class="lb-cap" id="lb-cap"></div>
 </div>
@@ -1936,12 +1936,7 @@ function eliminarMediaLocal(globalIdx){
 
 
 
-// INIT handled by Supabase auth
-  loadState();
-  if(!checkURL()){
-    goTo('home');
-  }
-});
+// INIT handled by Supabase auth (see DOMContentLoaded below)
 
 
 // Patch createEvento to save to Supabase after creating

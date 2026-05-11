@@ -1998,24 +1998,51 @@ if(_origDelMedia){
 document.addEventListener('DOMContentLoaded', async ()=>{
   mostrarLoading('Conectando con Melup...');
 
+  // Safety timeout: if loading takes more than 6 seconds, show login
+  const safetyTimer = setTimeout(()=>{
+    ocultarLoading();
+    if(!checkURL()) mostrarLogin();
+  }, 6000);
+
   // Listen for auth changes
   sb.auth.onAuthStateChange(async (event, session)=>{
+    // Handle token errors — clear session and show login
+    if(event === 'TOKEN_REFRESHED' && !session){
+      clearTimeout(safetyTimer);
+      await sb.auth.signOut();
+      ocultarLoading();
+      if(!checkURL()) mostrarLogin();
+      return;
+    }
     sbUser = session?.user || null;
     if(sbUser){
+      clearTimeout(safetyTimer);
       await sbLoadEvents();
       startRealtime();
       ocultarLoading();
       if(!checkURL()) goTo('dashboard');
     } else {
-      stopRealtime();
-      ocultarLoading();
-      if(!checkURL()) mostrarLogin();
+      if(event === 'SIGNED_OUT' || event === 'INITIAL_SESSION'){
+        clearTimeout(safetyTimer);
+        stopRealtime();
+        ocultarLoading();
+        if(!checkURL()) mostrarLogin();
+      }
     }
   });
 
-  // Get current session
-  const { data:{ session } } = await sb.auth.getSession();
-  if(!session){
+  // Get current session — if refresh fails, catch and show login
+  try{
+    const { data:{ session }, error } = await sb.auth.getSession();
+    if(error || !session){
+      clearTimeout(safetyTimer);
+      // Clear any bad stored tokens
+      try{ await sb.auth.signOut(); }catch(e){}
+      ocultarLoading();
+      if(!checkURL()) mostrarLogin();
+    }
+  }catch(e){
+    clearTimeout(safetyTimer);
     ocultarLoading();
     if(!checkURL()) mostrarLogin();
   }

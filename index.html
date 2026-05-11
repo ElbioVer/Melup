@@ -278,11 +278,15 @@ a{color:var(--gold);text-decoration:none;}
 .guest-mesa-badge{display:inline-block;background:var(--grad);color:white;padding:3px 13px;font-size:10px;font-weight:700;letter-spacing:.06em;margin-bottom:14px;}
 .guest-welcome{font-size:12px;color:rgba(255,255,255,.55);max-width:300px;margin:0 auto;line-height:1.7;}
 .guest-body{padding:24px;max-width:480px;margin:0 auto;}
-.guest-name-field{margin-bottom:18px;}
-.guest-name-field label{display:block;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);margin-bottom:7px;}
-.guest-name-field input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);padding:12px 14px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
-.guest-name-field input:focus{border-color:var(--gold);}
-.guest-name-field input::placeholder{color:rgba(255,255,255,.22);}
+.guest-name-field{margin-bottom:22px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,165,0,.35);border-radius:6px;padding:14px 16px;}
+.guest-name-field label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--gold);margin-bottom:10px;}
+.guest-name-field label::before{content:"✏️";font-size:16px;}
+.guest-name-field label span{font-size:10px;color:rgba(255,200,80,.7);font-weight:400;margin-left:4px;}
+.guest-name-field input{width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,200,80,.4);border-radius:4px;padding:14px 16px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;transition:border-color .2s, background .2s;box-sizing:border-box;}
+.guest-name-field input:focus{border-color:var(--gold);background:rgba(255,255,255,.12);}
+.guest-name-field input::placeholder{color:rgba(255,255,255,.35);font-size:14px;}
+.guest-name-hint{font-size:10px;color:rgba(255,200,80,.6);margin-top:7px;text-align:center;letter-spacing:.02em;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .guest-upload-zone{border:2px dashed rgba(201,168,76,.28);padding:36px 18px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:12px;}
 .guest-upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,.05);}
 .guest-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -736,8 +740,9 @@ a{color:var(--gold);text-decoration:none;}
   </div>
   <div class="guest-body">
     <div class="guest-name-field">
-      <label>Tu nombre</label>
-      <input type="text" id="g-name" placeholder="ej. María González">
+      <label>Tu nombre <span>— obligatorio para subir fotos</span></label>
+      <input type="text" id="g-name" placeholder="ej. María González" autocomplete="name">
+      <div class="guest-name-hint">⬆ Escribí tu nombre antes de subir las fotos</div>
     </div>
     <div class="guest-upload-zone">
       <input type="file" accept="image/*,video/*" multiple="" onchange="gSelArchivos(event)">
@@ -1665,7 +1670,16 @@ function renderGuestPrev(){
 }
 function gRm(i){appState.guestFiles.splice(i,1);renderGuestPrev();}
 async function gSubir(){
-  const author=el('g-name').value.trim()||'Invitado';
+  const rawName = el('g-name').value.trim();
+  if(!rawName){
+    el('g-name').focus();
+    el('g-name').style.borderColor='#FF4DA6';
+    el('g-name').style.animation='shake .3s ease';
+    setTimeout(()=>{ el('g-name').style.animation=''; el('g-name').style.borderColor=''; },1200);
+    toast('✏️ Escribí tu nombre antes de subir fotos', true);
+    return;
+  }
+  const author = rawName;
   const ev=appState.events.find(e=>e.id===appState.guestEvId);
   if(!ev){toast('Evento no encontrado',true);return;}
   if(!appState.guestFiles.length){toast('Seleccioná al menos un archivo',true);return;}

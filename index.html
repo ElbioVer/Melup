@@ -671,9 +671,10 @@ a{color:var(--gold);text-decoration:none;}
     <!-- TAB ALBUM -->
     <div id="tab-album" class="tab-pane">
       <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-sm" style="display:flex;align-items:center;gap:6px;background:#6D28D9;color:white;" onclick="sincronizarDesdeCloudinary()">
-          🔄 Sincronizar fotos de invitados
-        </button>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#A78BFA;padding:5px 10px;background:rgba(109,40,217,.15);border:1px solid rgba(109,40,217,.3);border-radius:4px;">
+          <span id="realtime-dot" style="width:7px;height:7px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s ease-in-out infinite;"></span>
+          Las fotos llegan en tiempo real
+        </div>
         <button class="btn btn-sm" style="display:flex;align-items:center;gap:6px;background:#5F5E5A;color:white;" onclick="limpiarSinMesa()">
           🗑 Limpiar Sin mesa
         </button>
@@ -1244,6 +1245,7 @@ function abrirEvento(id){
   renderStats();
   switchTab('qrs');
   goTo('event-detail');
+  if(sbUser) escucharUploadsInvitados(appState.currentId);
 }
 
 // TABS
@@ -1697,9 +1699,10 @@ async function gSubir(){
     txt.textContent='Subiendo '+(done+1)+' de '+total+'…';
     try{
       const src=await subirCloudinary(file,ev.name,mesaNombreFolder,author);
-      ev.media.push({id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now()});
-      saveState(); // Save after EACH upload — event never disappears
-      publicarEvento(ev); // Update public snapshot
+      const mediaItem = {id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now(),aprobada:null};
+      ev.media.push(mediaItem);
+      // Save guest upload to Supabase public table
+      await guardarUploadInvitado(ev.id, mediaItem);
     }catch(err){toast('Error subiendo archivo',true);}
     done++;bar.style.width=Math.round(done/total*100)+'%';
   }

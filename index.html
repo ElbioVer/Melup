@@ -287,6 +287,41 @@ a{color:var(--gold);text-decoration:none;}
 .guest-name-field input::placeholder{color:rgba(255,255,255,.35);font-size:14px;}
 .guest-name-hint{font-size:10px;color:rgba(255,200,80,.6);margin-top:7px;text-align:center;letter-spacing:.02em;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+/* ── ALBUM CHECKBOX SELECTION ──────────────────────────── */
+.media-item .media-checkbox{
+  position:absolute;top:6px;left:6px;z-index:10;
+  width:20px;height:20px;border-radius:4px;
+  border:2px solid rgba(255,255,255,.7);
+  background:rgba(0,0,0,.3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.media-item .media-checkbox.checked{
+  background:var(--gold);border-color:var(--gold);
+}
+.media-item .media-checkbox.checked::after{
+  content:'✓';color:#000;font-size:12px;font-weight:700;
+}
+.media-item.selected{outline:2px solid var(--gold);outline-offset:-2px;}
+.album-toolbar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;margin-bottom:4px;
+  min-height:36px;
+}
+.album-sel-count{font-size:11px;color:var(--soft);}
+.btn-trash-sel{
+  background:#C0392B;color:white;border:none;
+  padding:6px 14px;font-size:11px;font-weight:700;
+  border-radius:3px;cursor:pointer;display:none;gap:5px;align-items:center;
+}
+.btn-trash-sel.visible{display:flex;}
+.btn-aprobar-sel{
+  background:#27AE60;color:white;border:none;
+  padding:6px 14px;font-size:11px;font-weight:700;
+  border-radius:3px;cursor:pointer;display:none;gap:5px;align-items:center;
+}
+.btn-aprobar-sel.visible{display:flex;}
+
 .guest-upload-zone{border:2px dashed rgba(201,168,76,.28);padding:36px 18px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:12px;}
 .guest-upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,.05);}
 .guest-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -340,9 +375,8 @@ a{color:var(--gold);text-decoration:none;}
 .media-item .mod-bar{
   position:absolute;bottom:0;left:0;right:0;
   display:flex;gap:4px;padding:5px;
-  background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s;
+  background:rgba(0,0,0,.65);opacity:1;transition:opacity .2s;
 }
-.media-item:hover .mod-bar{opacity:1;}
 .btn-aprobar{flex:1;background:#27AE60;color:white;border:none;font-size:10px;
              font-weight:700;padding:4px;cursor:pointer;border-radius:2px;}
 .btn-rechazar{flex:1;background:#C0392B;color:white;border:none;font-size:10px;
@@ -376,7 +410,11 @@ a{color:var(--gold);text-decoration:none;}
 .slide-img{
   max-width:100vw;max-height:100vh;
   object-fit:contain;
-  transition:opacity .8s ease;
+  animation:fadeInSlide .9s ease;
+}
+@keyframes fadeInSlide{
+  from{opacity:0;transform:scale(1.02);}
+  to{opacity:1;transform:scale(1);}
 }
 .slide-video{
   max-width:100vw;max-height:100vh;
@@ -702,6 +740,11 @@ a{color:var(--gold);text-decoration:none;}
       <div class="prog-container" id="admin-prog">
         <div class="prog-label"><span id="admin-prog-lbl">Subiendo…</span><span id="admin-prog-pct">0%</span></div>
         <div class="prog-track"><div class="prog-fill" id="admin-prog-bar"></div></div>
+      </div>
+      <div class="album-toolbar">
+        <span class="album-sel-count" id="sel-count"></span>
+        <button class="btn-aprobar-sel" id="btn-aprobar-sel" onclick="aprobarSeleccionadas()">✓ Aprobar seleccionadas</button>
+        <button class="btn-trash-sel" id="btn-trash-sel" onclick="eliminarSeleccionadas()">🗑 Eliminar seleccionadas</button>
       </div>
       <div class="filter-bar" id="album-filters"></div>
       <div class="album-grid" id="album-grid"></div>
@@ -1369,19 +1412,25 @@ function renderAlbum(filtro){
     grid.innerHTML='<div class="album-empty"><div class="album-empty-icon">🖼</div><p style="font-size:12px;">Sin archivos en esta sección.</p></div>';
     return;
   }
+  // Track selected items
+  if(!window.albumSelected) window.albumSelected = new Set();
+
   grid.innerHTML=media.map(m=>{
     const gi=ev.media.indexOf(m);
     const aprobada = m.aprobada===true;
     const rechazada = m.aprobada===false;
     const modClass = aprobada?'aprobada':rechazada?'rechazada':'';
-    const delBtn=`<button class="media-del-btn" onclick="event.stopPropagation();eliminarMediaLocal(${gi})" title="Eliminar del álbum">✕</button>`;
+    const isSel = window.albumSelected.has(gi);
+    const checkbox=`<div class="media-checkbox${isSel?' checked':''}" onclick="event.stopPropagation();toggleSelMedia(${gi})" title="Seleccionar"></div>`;
     const modBar=`<div class="mod-bar">
       <button class="btn-aprobar" onclick="event.stopPropagation();moderarMedia(${gi},true)" title="Aprobar para presentación">✓ Aprobar</button>
       <button class="btn-rechazar" onclick="event.stopPropagation();moderarMedia(${gi},false)" title="Rechazar">✗</button>
     </div>`;
-    if(m.type==='video') return `<div class="media-item ${modClass}" onclick="abrirLB(${gi})">${delBtn}${modBar}<video src="${m.src}" muted preload="metadata" onerror="eliminarMediaLocal(${gi})"></video><div class="vid-badge">▶</div><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
-    return `<div class="media-item ${modClass}" onclick="abrirLB(${gi})">${delBtn}${modBar}<img src="${m.src}" loading="lazy" onerror="this.closest('.media-item').style.display='none';eliminarMediaLocal(${gi})"><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
+    const selClass = isSel ? ' selected' : '';
+    if(m.type==='video') return `<div class="media-item ${modClass}${selClass}" onclick="abrirLB(${gi})">${checkbox}${modBar}<video src="${m.src}" muted preload="metadata" onerror="eliminarMediaLocal(${gi})"></video><div class="vid-badge">▶</div><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
+    return `<div class="media-item ${modClass}${selClass}" onclick="abrirLB(${gi})">${checkbox}${modBar}<img src="${m.src}" loading="lazy" onerror="this.closest('.media-item').style.display='none';eliminarMediaLocal(${gi})"><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
   }).join('');
+  actualizarToolbar();
 }
 
 function renderStats(){
@@ -2268,11 +2317,10 @@ function mostrarSlide(){
         onended="slideSiguiente()" style="max-width:100vw;max-height:100vh;object-fit:contain;"></video>`;
     } else {
       container.innerHTML = `<img class="slide-img" src="${m.src}"
-        style="max-width:100vw;max-height:100vh;object-fit:contain;opacity:1;">`;
+        style="max-width:100vw;max-height:100vh;object-fit:contain;">`;
     }
-    container.style.transition = 'opacity .8s';
     container.style.opacity = '1';
-  }, 100);
+  }, 80);
 
   el('slide-author').textContent = m.author ? '📷 ' + m.author + (m.mesaNombre ? ' · ' + m.mesaNombre : '') : '';
   el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
@@ -2422,7 +2470,6 @@ function escucharUploadsInvitados(evId){
     .on('postgres_changes',
       {event:'INSERT', schema:'public', table:'melup_guest_uploads'},
       payload=>{
-        console.log('📸 Realtime guest upload received:', payload);
         const item = payload.new?.media_item;
         const eventId = payload.new?.event_id;
         if(!item || eventId !== evId) return;
@@ -2474,6 +2521,48 @@ async function recargarAlbum(){
   } else {
     toast('✅ El álbum ya está al día');
   }
+}
+
+
+// ── ALBUM SELECTION ──────────────────────────────────────────
+function toggleSelMedia(gi){
+  if(!window.albumSelected) window.albumSelected = new Set();
+  if(window.albumSelected.has(gi)) window.albumSelected.delete(gi);
+  else window.albumSelected.add(gi);
+  renderAlbum();
+}
+
+function actualizarToolbar(){
+  const count = window.albumSelected ? window.albumSelected.size : 0;
+  const countEl = el('sel-count');
+  const trashBtn = el('btn-trash-sel');
+  const aprobarBtn = el('btn-aprobar-sel');
+  if(countEl) countEl.textContent = count > 0 ? count+' seleccionada(s)' : '';
+  if(trashBtn) trashBtn.classList.toggle('visible', count > 0);
+  if(aprobarBtn) aprobarBtn.classList.toggle('visible', count > 0);
+}
+
+async function eliminarSeleccionadas(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev || !window.albumSelected || !window.albumSelected.size) return;
+  if(!confirm('¿Eliminar '+window.albumSelected.size+' elemento(s) del álbum?')) return;
+  const indices = Array.from(window.albumSelected).sort((a,b)=>b-a);
+  indices.forEach(i=>{ ev.media.splice(i,1); });
+  window.albumSelected = new Set();
+  await sbSaveEvent(ev);
+  renderAlbum();
+  renderStats();
+  toast('🗑 '+indices.length+' elemento(s) eliminado(s)');
+}
+
+async function aprobarSeleccionadas(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev || !window.albumSelected || !window.albumSelected.size) return;
+  window.albumSelected.forEach(gi=>{ if(ev.media[gi]) ev.media[gi].aprobada=true; });
+  window.albumSelected = new Set();
+  await sbSaveEvent(ev);
+  renderAlbum();
+  toast('✅ Fotos aprobadas para la presentación');
 }
 
 </script>

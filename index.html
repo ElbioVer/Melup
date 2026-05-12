@@ -2395,12 +2395,19 @@ document.addEventListener('keydown', e=>{
 // ── GUEST UPLOAD TO SUPABASE ─────────────────────────────────
 async function guardarUploadInvitado(eventId, mediaItem){
   try{
-    const {error} = await sb.from('melup_guest_uploads').insert({
+    const {data, error} = await sb.from('melup_guest_uploads').insert({
       event_id: eventId,
       media_item: mediaItem
-    });
-    if(error) console.warn('guardarUploadInvitado error:', error);
-  }catch(e){ console.warn('guardarUploadInvitado exception:', e); }
+    }).select();
+    if(error){
+      console.error('guardarUploadInvitado error:', error.code, error.message, error.details);
+      toast('Error al registrar foto: '+error.message, true);
+    } else {
+      console.log('✅ Foto registrada en Supabase:', data);
+    }
+  }catch(e){ 
+    console.error('guardarUploadInvitado exception:', e); 
+  }
 }
 
 // ── LISTEN FOR GUEST UPLOADS IN REAL TIME (admin side) ───────

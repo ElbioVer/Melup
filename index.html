@@ -678,6 +678,9 @@ a{color:var(--gold);text-decoration:none;}
         <button class="btn btn-sm" style="display:flex;align-items:center;gap:6px;background:#5F5E5A;color:white;" onclick="limpiarSinMesa()">
           🗑 Limpiar Sin mesa
         </button>
+        <button class="btn btn-sm" style="display:flex;align-items:center;gap:6px;background:#0E7490;color:white;" onclick="agregarURLManual()">
+          🔗 Agregar por URL
+        </button>
         <button class="btn btn-sm" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#FF4DA6,#8B5CF6);color:white;" onclick="abrirSlideshow()">
           ▶ Presentación en vivo
         </button>
@@ -1245,7 +1248,7 @@ function abrirEvento(id){
   renderStats();
   switchTab('qrs');
   goTo('event-detail');
-  if(sbUser) escucharUploadsInvitados(appState.currentId);
+  setTimeout(()=>{ if(typeof escucharUploadsInvitados==='function'&&sbUser) escucharUploadsInvitados(appState.currentId); },100);
 }
 
 // TABS
@@ -2387,6 +2390,44 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape') cerrarSlideshow();
   if(e.key==='p'||e.key==='P') toggleSlidePause();
 });
+
+
+// ── GUEST UPLOAD TO SUPABASE ─────────────────────────────────
+async function guardarUploadInvitado(eventId, mediaItem){
+  try{
+    const {error} = await sb.from('melup_guest_uploads').insert({
+      event_id: eventId,
+      media_item: mediaItem
+    });
+    if(error) console.warn('guardarUploadInvitado error:', error);
+  }catch(e){ console.warn('guardarUploadInvitado exception:', e); }
+}
+
+// ── LISTEN FOR GUEST UPLOADS IN REAL TIME (admin side) ───────
+let guestUploadChannels = {};
+function escucharUploadsInvitados(evId){
+  if(guestUploadChannels[evId]) sb.removeChannel(guestUploadChannels[evId]);
+  guestUploadChannels[evId] = sb
+    .channel('guest-uploads-'+evId)
+    .on('postgres_changes',
+      {event:'INSERT', schema:'public', table:'melup_guest_uploads', filter:'event_id=eq.'+evId},
+      payload=>{
+        const item = payload.new?.media_item;
+        if(!item) return;
+        const ev = appState.events.find(e=>e.id===evId);
+        if(!ev) return;
+        if(ev.media.find(m=>m.id===item.id)) return;
+        ev.media.push(item);
+        sbSaveEvent(ev);
+        const detail = el('event-detail');
+        if(detail && detail.classList.contains('active') && appState.currentId===evId){
+          renderAlbum();
+          renderStats();
+        }
+        toast('📸 Nueva foto de '+(item.author||'invitado')+' llegó en tiempo real!');
+      }
+    ).subscribe();
+}
 
 </script>
 

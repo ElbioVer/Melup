@@ -245,9 +245,10 @@ a{color:var(--gold);text-decoration:none;}
 .filter-btn.active{background:#6D28D9;color:white;border-color:#6D28D9;}
 .album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:7px;}
 .media-item{aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;background:var(--warm);}
+.media-item img,.media-item video{pointer-events:none;}
 .media-item img,.media-item video{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
 .media-item:hover img,.media-item:hover video{transform:scale(1.05);}
-.media-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:14px 7px 7px;font-size:9px;color:white;opacity:0;transition:opacity .2s;}
+.media-overlay{position:absolute;bottom:32px;left:0;right:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:14px 7px 7px;font-size:9px;color:white;opacity:0;transition:opacity .2s;}
 .media-item:hover .media-overlay{opacity:1;}
 .vid-badge{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.65);color:white;padding:2px 5px;font-size:8px;border-radius:2px;}
 .album-empty{grid-column:1/-1;text-align:center;padding:44px;color:var(--soft);}
@@ -373,14 +374,22 @@ a{color:var(--gold);text-decoration:none;}
 .toast.err{border-left-color:var(--red);}
 /* ── MODERACIÓN ─────────────────────────────────────── */
 .media-item .mod-bar{
-  position:absolute;bottom:0;left:0;right:0;
-  display:flex;gap:4px;padding:5px;
-  background:rgba(0,0,0,.65);opacity:1;transition:opacity .2s;
+  position:absolute;bottom:4px;right:4px;
+  display:flex;gap:4px;padding:0;
+  background:none;z-index:5;
 }
-.btn-aprobar{flex:1;background:#27AE60;color:white;border:none;font-size:10px;
-             font-weight:700;padding:4px;cursor:pointer;border-radius:2px;}
-.btn-rechazar{flex:1;background:#C0392B;color:white;border:none;font-size:10px;
-              font-weight:700;padding:4px;cursor:pointer;border-radius:2px;}
+.btn-aprobar{
+  width:24px;height:24px;border-radius:50%;background:#27AE60;color:white;
+  border:none;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:6;position:relative;flex-shrink:0;line-height:1;
+}
+.btn-rechazar{
+  width:24px;height:24px;border-radius:50%;background:#C0392B;color:white;
+  border:none;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:6;position:relative;flex-shrink:0;line-height:1;
+}
 .media-item.aprobada::after{
   content:'✓';position:absolute;top:5px;left:5px;
   background:#27AE60;color:white;width:20px;height:20px;
@@ -408,13 +417,19 @@ a{color:var(--gold);text-decoration:none;}
 }
 #slideshow-screen.active{display:flex;}
 .slide-img{
-  max-width:100vw;max-height:100vh;
+  height:100vh;
+  width:auto;
+  max-width:100vw;
   object-fit:contain;
-  animation:fadeInSlide .9s ease;
+  animation:kenBurns var(--slide-dur, 5s) ease-out forwards, fadeInSlide .7s ease;
 }
 @keyframes fadeInSlide{
-  from{opacity:0;transform:scale(1.02);}
-  to{opacity:1;transform:scale(1);}
+  from{opacity:0;}
+  to{opacity:1;}
+}
+@keyframes kenBurns{
+  from{transform:scale(1);}
+  to{transform:scale(1.12);}
 }
 .slide-video{
   max-width:100vw;max-height:100vh;
@@ -1422,8 +1437,8 @@ function renderAlbum(filtro){
     const modClass = aprobada?'aprobada':rechazada?'rechazada':'';
     const isSel = window.albumSelected.has(gi);
     const checkbox=`<div class="media-checkbox${isSel?' checked':''}" onclick="event.stopPropagation();toggleSelMedia(${gi})" title="Seleccionar"></div>`;
-    const modBar=`<div class="mod-bar">
-      <button class="btn-aprobar" onclick="event.stopPropagation();moderarMedia(${gi},true)" title="Aprobar para presentación">✓ Aprobar</button>
+    const modBar=`<div class="mod-bar" onclick="event.stopPropagation()">
+      <button class="btn-aprobar" onclick="event.stopPropagation();moderarMedia(${gi},true)" title="Aprobar para presentación">✓</button>
       <button class="btn-rechazar" onclick="event.stopPropagation();moderarMedia(${gi},false)" title="Rechazar">✗</button>
     </div>`;
     const selClass = isSel ? ' selected' : '';
@@ -2312,12 +2327,13 @@ function mostrarSlide(){
   container.style.opacity = '0';
 
   setTimeout(()=>{
+    const dur = (slideState.duration/1000)+'s';
     if(m.type === 'video'){
       container.innerHTML = `<video class="slide-video" src="${m.src}" autoplay muted playsinline
-        onended="slideSiguiente()" style="max-width:100vw;max-height:100vh;object-fit:contain;"></video>`;
+        onended="slideSiguiente()" style="height:100vh;width:auto;max-width:100vw;object-fit:contain;"></video>`;
     } else {
       container.innerHTML = `<img class="slide-img" src="${m.src}"
-        style="max-width:100vw;max-height:100vh;object-fit:contain;">`;
+        style="--slide-dur:${dur};">`;
     }
     container.style.opacity = '1';
   }, 80);
@@ -2576,7 +2592,7 @@ async function aprobarSeleccionadas(){
     <button class="slide-btn" onclick="slideSiguiente()">▶</button>
   </div>
   <div class="slide-counter" id="slide-counter"></div>
-  <div id="slide-media" style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
+  <div id="slide-media" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>
   <div class="slide-overlay">
     <div>
       <div class="slide-event-name" id="slide-event-name"></div>

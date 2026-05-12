@@ -2492,6 +2492,7 @@ function escucharUploadsInvitados(evId){
         const ev = appState.events.find(e=>e.id===evId);
         if(!ev) return;
         if(ev.media.find(m=>m.id===item.id)) return;
+        if((ev.deletedMediaIds||[]).includes(item.id)) return;
         ev.media.push(item);
         sbSaveEvent(ev);
         const detail = el('event-detail');
@@ -2520,11 +2521,13 @@ async function recargarAlbum(){
   
   if(error){ console.error('recargarAlbum error:', error); return; }
   
+  const deletedIds = ev.deletedMediaIds || [];
   let nuevas = 0;
   (data||[]).forEach(row=>{
     const item = row.media_item;
     if(!item) return;
     if(ev.media.find(m=>m.id===item.id)) return;
+    if(deletedIds.includes(item.id)) return; // skip deleted
     ev.media.push(item);
     nuevas++;
   });
@@ -2563,9 +2566,26 @@ async function eliminarSeleccionadas(){
   if(!ev || !window.albumSelected || !window.albumSelected.size) return;
   if(!confirm('¿Eliminar '+window.albumSelected.size+' elemento(s) del álbum?')) return;
   const indices = Array.from(window.albumSelected).sort((a,b)=>b-a);
-  indices.forEach(i=>{ ev.media.splice(i,1); });
+  
+  // Track deleted IDs to prevent re-import
+  if(!ev.deletedMediaIds) ev.deletedMediaIds = [];
+  indices.forEach(i=>{ 
+    if(ev.media[i]) ev.deletedMediaIds.push(ev.media[i].id);
+    ev.media.splice(i,1); 
+  });
+  
   window.albumSelected = new Set();
   await sbSaveEvent(ev);
+  
+  // Also delete from melup_guest_uploads
+  const deletedIds = ev.deletedMediaIds;
+  if(deletedIds.length){
+    await sb.from('melup_guest_uploads')
+      .delete()
+      .eq('event_id', ev.id)
+      .in('media_item->>id', deletedIds.slice(-50));
+  }
+  
   renderAlbum();
   renderStats();
   toast('🗑 '+indices.length+' elemento(s) eliminado(s)');
@@ -2585,22 +2605,22 @@ async function aprobarSeleccionadas(){
 
 <!-- SLIDESHOW SCREEN -->
 <div id="slideshow-screen">
-  <div class="slide-controls">
-    <button class="slide-btn" onclick="cerrarSlideshow()">✕ Cerrar</button>
-    <button class="slide-btn" id="slide-pause-btn" onclick="toggleSlidePause()">⏸ Pausar</button>
-    <button class="slide-btn" onclick="slideAnterior()">◀</button>
-    <button class="slide-btn" onclick="slideSiguiente()">▶</button>
+  <div class="slide-controls" style="position:absolute;top:12px;left:16px;z-index:600;display:flex;gap:8px;">
+    <button class="slide-btn" onclick="cerrarSlideshow()" style="z-index:601;cursor:pointer;">✕ Cerrar</button>
+    <button class="slide-btn" id="slide-pause-btn" onclick="toggleSlidePause()" style="z-index:601;cursor:pointer;">⏸ Pausar</button>
+    <button class="slide-btn" onclick="slideAnterior()" style="z-index:601;cursor:pointer;">◀</button>
+    <button class="slide-btn" onclick="slideSiguiente()" style="z-index:601;cursor:pointer;">▶</button>
   </div>
-  <div class="slide-counter" id="slide-counter"></div>
-  <div id="slide-media" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>
-  <div class="slide-overlay">
+  <div class="slide-counter" style="z-index:560;" id="slide-counter"></div>
+  <div id="slide-media" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:501;"></div>
+  <div class="slide-overlay" style="z-index:560;">
     <div>
       <div class="slide-event-name" id="slide-event-name"></div>
       <div class="slide-author" id="slide-author"></div>
     </div>
     <img class="slide-logo" id="slide-logo" src="" alt="Melup">
   </div>
-  <div class="slide-progress" id="slide-progress"></div>
+  <div class="slide-progress" style="z-index:560;" id="slide-progress"></div>
 </div>
 </body>
 </html>

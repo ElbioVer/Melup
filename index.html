@@ -673,8 +673,11 @@ a{color:var(--gold);text-decoration:none;}
       <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#A78BFA;padding:5px 10px;background:rgba(109,40,217,.15);border:1px solid rgba(109,40,217,.3);border-radius:4px;">
           <span id="realtime-dot" style="width:7px;height:7px;border-radius:50%;background:#4CAF50;display:inline-block;animation:pulse 2s ease-in-out infinite;"></span>
-          Las fotos llegan en tiempo real
+          Tiempo real activo
         </div>
+        <button class="btn btn-sm" style="display:flex;align-items:center;gap:5px;background:#1D4ED8;color:white;" onclick="recargarAlbum()">
+          🔄 Actualizar álbum
+        </button>
         <button class="btn btn-sm" style="display:flex;align-items:center;gap:6px;background:#5F5E5A;color:white;" onclick="limpiarSinMesa()">
           🗑 Limpiar Sin mesa
         </button>
@@ -2417,10 +2420,12 @@ function escucharUploadsInvitados(evId){
   guestUploadChannels[evId] = sb
     .channel('guest-uploads-'+evId)
     .on('postgres_changes',
-      {event:'INSERT', schema:'public', table:'melup_guest_uploads', filter:'event_id=eq.'+evId},
+      {event:'INSERT', schema:'public', table:'melup_guest_uploads'},
       payload=>{
+        console.log('📸 Realtime guest upload received:', payload);
         const item = payload.new?.media_item;
-        if(!item) return;
+        const eventId = payload.new?.event_id;
+        if(!item || eventId !== evId) return;
         const ev = appState.events.find(e=>e.id===evId);
         if(!ev) return;
         if(ev.media.find(m=>m.id===item.id)) return;
@@ -2433,7 +2438,42 @@ function escucharUploadsInvitados(evId){
         }
         toast('📸 Nueva foto de '+(item.author||'invitado')+' llegó en tiempo real!');
       }
-    ).subscribe();
+    ).subscribe((status)=>{
+      console.log('Realtime channel status:', status);
+    });
+}
+
+// Manual refresh from Supabase
+async function recargarAlbum(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+  toast('🔄 Actualizando álbum...');
+  
+  // Load pending guest uploads from Supabase
+  const {data, error} = await sb
+    .from('melup_guest_uploads')
+    .select('media_item')
+    .eq('event_id', ev.id);
+  
+  if(error){ console.error('recargarAlbum error:', error); return; }
+  
+  let nuevas = 0;
+  (data||[]).forEach(row=>{
+    const item = row.media_item;
+    if(!item) return;
+    if(ev.media.find(m=>m.id===item.id)) return;
+    ev.media.push(item);
+    nuevas++;
+  });
+  
+  if(nuevas > 0){
+    await sbSaveEvent(ev);
+    renderAlbum();
+    renderStats();
+    toast('✅ '+nuevas+' foto(s) nueva(s) cargadas');
+  } else {
+    toast('✅ El álbum ya está al día');
+  }
 }
 
 </script>

@@ -2601,6 +2601,29 @@ async function aprobarSeleccionadas(){
   toast('✅ Fotos aprobadas para la presentación');
 }
 
+
+// ── AGREGAR MEDIA POR URL MANUAL ─────────────────────────────
+async function agregarURLManual(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev){ toast('Abrí un evento primero', true); return; }
+  const url = prompt('Pegá la URL de Cloudinary:');
+  if(!url || !url.startsWith('http')) return;
+  const autor = prompt('Nombre del invitado (opcional):') || 'Invitado';
+  const esVideo = url.match(/\.(mp4|mov|avi|webm)/i);
+  const type = esVideo ? 'video' : 'image';
+  if(ev.media.find(m=>m.src===url)){ toast('Esa URL ya está en el álbum', true); return; }
+  const item = {
+    id: uid(), src: url, type, author: autor,
+    time: new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),
+    mesaId: null, mesaNombre: null, uploadedAt: Date.now(), aprobada: null
+  };
+  ev.media.push(item);
+  await sbSaveEvent(ev);
+  renderAlbum();
+  renderStats();
+  toast('✅ Foto agregada al álbum');
+}
+
 </script>
 
 <!-- SLIDESHOW SCREEN -->

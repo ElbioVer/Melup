@@ -1206,31 +1206,51 @@ function checkURL(){
   const pub = decodeGuestURL();
   if(!pub||!pub.i||!pub.n) return false;
 
-  // Find or create event in state
-  let ev = appState.events.find(e=>e.id===pub.i);
-  if(!ev){
-    ev = {
-      id:pub.i, name:pub.n, type:pub.t||'✦', template:pub.l||'rosa',
-      desc:pub.d||'', start:pub.s||'', end:pub.e||'', place:pub.p||'',
-      mesas:[], media:[]
-    };
-    appState.events.push(ev);
-  }
-
-  // If this QR is for a specific mesa, make sure it exists in ev.mesas
-  // so abrirVistaInvitado can find it by ID
-  if(pub.mi && pub.mn){
-    const exists = (ev.mesas||[]).find(m=>m.id===pub.mi);
-    if(!exists){
-      if(!ev.mesas) ev.mesas=[];
-      ev.mesas.push({id:pub.mi, name:pub.mn});
-    }
-  }
-
-  // Store mesa data in state for the upload function
+  // Store mesa data for upload function
   appState.guestMesaNombre = pub.mn || null;
   appState.guestMesaId     = pub.mi || null;
-  abrirVistaInvitado(pub.mi, pub.i);
+
+  // Try to load full event from Supabase (has coverImage, desc, etc.)
+  sb.from('melup_events').select('data').eq('id', pub.i).single()
+    .then(({data, error})=>{
+      let ev;
+      if(!error && data && data.data){
+        // Use full event data from Supabase
+        ev = data.data;
+        // Make sure mesa exists
+        if(pub.mi && pub.mn){
+          if(!ev.mesas) ev.mesas=[];
+          const exists = ev.mesas.find(m=>m.id===pub.mi);
+          if(!exists) ev.mesas.push({id:pub.mi, name:pub.mn});
+        }
+        const idx = appState.events.findIndex(e=>e.id===pub.i);
+        if(idx>=0) appState.events[idx]=ev;
+        else appState.events.push(ev);
+      } else {
+        // Fallback: use URL data
+        ev = appState.events.find(e=>e.id===pub.i);
+        if(!ev){
+          ev = {
+            id:pub.i, name:pub.n, type:pub.t||'✦', template:pub.l||'rosa',
+            desc:'', start:'', end:'', place:'', mesas:[], media:[]
+          };
+          if(pub.mi && pub.mn) ev.mesas.push({id:pub.mi, name:pub.mn});
+          appState.events.push(ev);
+        }
+      }
+      abrirVistaInvitado(pub.mi, pub.i);
+    })
+    .catch(()=>{
+      // Fallback if Supabase fails
+      let ev = appState.events.find(e=>e.id===pub.i);
+      if(!ev){
+        ev = {id:pub.i, name:pub.n, type:pub.t||'✦', template:pub.l||'rosa',
+              desc:'', start:'', end:'', place:'', mesas:[], media:[]};
+        if(pub.mi && pub.mn) ev.mesas.push({id:pub.mi, name:pub.mn});
+        appState.events.push(ev);
+      }
+      abrirVistaInvitado(pub.mi, pub.i);
+    });
   return true;
 }
 

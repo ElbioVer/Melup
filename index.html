@@ -590,7 +590,7 @@ a{color:var(--gold);text-decoration:none;}
     <h1 class="home-title">Cada momento<br><em>bien guardado</em></h1>
     <p class="home-sub">Creá tu evento, generá QR por mesa y tus invitados suben fotos y videos directo al álbum. Sin registros, sin apps.</p>
     <div class="home-cta" id="home-admin-btns">
-      <button class="btn btn-gold" style="padding:14px 30px;font-size:13px;" onclick="irAlAdmin()">Crear mi evento</button>
+      <button class="btn btn-gold" style="padding:14px 30px;font-size:13px;" onclick="irACrearEvento()">Crear mi evento</button>
       <button class="btn btn-dark" style="padding:14px 30px;font-size:13px;--hover-bg:#4A4560;--hover-color:#E8E4E4;" onmouseover="this.style.background=&#39;#4A4560&#39;;this.style.color=&#39;#E8E4E4&#39;;" onmouseout="this.style.background=&#39;&#39;;this.style.color=&#39;&#39;;" onclick="irAlAdmin()">Ver mis eventos</button>
     </div>
   </div>
@@ -619,8 +619,21 @@ a{color:var(--gold);text-decoration:none;}
     </div>
   </nav>
   <div class="dash-body">
-    <h1 class="page-h">Mis <em>eventos</em></h1>
-    <p class="page-sub">Panel de administrador — solo vos ves esta sección.</p>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <h1 class="page-h">Mis <em>eventos</em></h1>
+        <p class="page-sub">Panel de administrador — solo vos ves esta sección.</p>
+      </div>
+      <button onclick="goTo('create-event')" style="
+        display:flex;align-items:center;gap:5px;
+        background:#27AE60;color:white;border:none;
+        padding:7px 14px;font-size:11px;font-weight:700;
+        border-radius:20px;cursor:pointer;white-space:nowrap;
+        letter-spacing:.04em;margin-top:6px;
+        box-shadow:0 2px 8px rgba(39,174,96,.35);">
+        ✦ Nuevo
+      </button>
+    </div>
     <div class="events-grid" id="events-grid"></div>
   </div>
 </div>
@@ -1021,6 +1034,12 @@ async function resetPassword(){
   else alert('✅ Te enviamos un email. Revisá tu bandeja (y el spam).');
 }
 
+
+function irACrearEvento(){
+  if(sbUser){ goTo('create-event'); }
+  else { mostrarLogin(); }
+}
+
 function irAlAdmin(){
   if(sbUser) goTo('dashboard');
   else mostrarLogin();
@@ -1310,7 +1329,7 @@ function renderDashboard(){
       </div>
     </div>`;
   });
-  html+=`<div class="new-card" onclick="goTo('create-event')"><div class="new-card-icon">✦</div><div class="new-card-txt">Crear nuevo evento</div></div>`;
+
   grid.innerHTML=html;
 }
 

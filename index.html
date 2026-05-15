@@ -300,6 +300,42 @@ a{color:var(--gold);text-decoration:none;}
 .guest-name-field input::placeholder{color:rgba(255,255,255,.35);font-size:14px;}
 .guest-name-hint{font-size:10px;color:rgba(255,200,80,.6);margin-top:7px;text-align:center;letter-spacing:.02em;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+/* ── REGISTRO / INVITACIÓN ──────────────────────────────── */
+#register-screen{ background:linear-gradient(160deg,#0D0820 0%,#160830 100%); }
+.register-wrap{ flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px; }
+.register-box{ background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.25);
+               padding:40px 36px;max-width:380px;width:100%;border-radius:6px; }
+.register-title{ font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;
+                 color:var(--cream);margin-bottom:4px;text-align:center; }
+.register-sub{ font-size:11px;color:var(--soft);margin-bottom:22px;text-align:center;line-height:1.6; }
+.inv-badge{ background:rgba(39,174,96,.15);border:1px solid rgba(39,174,96,.3);
+            color:#6FCF97;font-size:10px;padding:5px 12px;border-radius:20px;
+            text-align:center;margin-bottom:18px;display:block; }
+
+/* ── PANEL INVITACIONES (admin) ─────────────────────────── */
+.inv-list{ display:flex;flex-direction:column;gap:10px;margin-top:16px; }
+.inv-item{ background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+           padding:14px 16px;border-radius:4px;display:flex;align-items:center;gap:12px; }
+.inv-item.used{ opacity:.5; }
+.inv-dot{ width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+.inv-dot.active{ background:#27AE60; }
+.inv-dot.used{ background:#666; }
+.inv-dot.expired{ background:#E74C3C; }
+.inv-info{ flex:1; }
+.inv-label{ font-size:12px;font-weight:600;color:var(--cream); }
+.inv-meta{ font-size:10px;color:var(--soft);margin-top:2px; }
+.inv-link{ font-size:9px;color:var(--gold);word-break:break-all;margin-top:4px;cursor:pointer; }
+.inv-actions{ display:flex;gap:6px; }
+.btn-copy-inv{ background:rgba(255,200,80,.15);color:var(--gold);border:1px solid rgba(255,200,80,.3);
+               padding:5px 10px;font-size:10px;cursor:pointer;border-radius:3px; }
+.btn-del-inv{ background:rgba(231,76,60,.1);color:#E74C3C;border:1px solid rgba(231,76,60,.2);
+              padding:5px 8px;font-size:10px;cursor:pointer;border-radius:3px; }
+
+/* ── USER DASHBOARD (limited) ───────────────────────────── */
+.user-badge{ display:inline-flex;align-items:center;gap:5px;background:rgba(139,92,246,.15);
+             border:1px solid rgba(139,92,246,.3);color:#A78BFA;font-size:9px;
+             padding:3px 10px;border-radius:20px;letter-spacing:.05em; }
+
 /* ── ALBUM CHECKBOX SELECTION ──────────────────────────── */
 .media-item .media-checkbox{
   position:absolute;top:6px;left:6px;z-index:10;
@@ -612,6 +648,8 @@ a{color:var(--gold);text-decoration:none;}
     <div class="app-logo"><img src="data:image/jpeg;base64,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" style="height:44px;width:auto;border-radius:20%;" alt="Melup"></div>
     <div class="nav-btns">
       <button class="btn btn-ghost" onclick="goTo(&#39;home&#39;)">Inicio</button>
+      <button class="btn btn-ghost btn-sm" id="btn-invitaciones" onclick="abrirInvitaciones()" 
+        style="display:none;font-size:11px;">🔗 Invitaciones</button>
       <button class="btn btn-ghost btn-sm" onclick="exportarEventos()" title="Exportar eventos">⬇ Exportar</button>
       <label class="btn btn-ghost btn-sm" style="cursor:pointer;padding:6px 14px;font-size:11px;" title="Importar eventos">⬆ Importar<input type="file" accept=".json" onchange="importarEventos(event)" style="display:none;"></label>
       <button class="btn btn-ghost btn-sm" onclick="cerrarSesion()">🔒 Salir</button>
@@ -1006,8 +1044,10 @@ async function hacerLogin(){
     // Login OK
     sbUser = data.user;
     btn.textContent='Cargando...';
-    await sbLoadEvents();
+    await cargarPerfilUsuario();
+    await fbLoadEvents();
     startRealtime();
+    mostrarBadgeUsuario();
     goTo('dashboard');
   }catch(e){
     err.textContent='Error de conexión. Intentá de nuevo.';
@@ -2262,6 +2302,14 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     return;
   }
 
+  // If this is an invitation URL, show register screen
+  // Self-registration disabled - admin creates accounts directly
+  if(false && await checkInviteURL()){
+    clearTimeout(safetyTimer);
+    ocultarLoading();
+    return;
+  }
+
   // If this is a guest URL (QR scan), skip auth entirely
   if(checkURL()){
     clearTimeout(safetyTimer);
@@ -2286,9 +2334,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     // Valid session found
     sbUser = session.user;
     clearTimeout(safetyTimer);
-    await sbLoadEvents();
+    await cargarPerfilUsuario();
+    await fbLoadEvents();
     startRealtime();
     ocultarLoading();
+    mostrarBadgeUsuario();
     goTo('dashboard');
 
   }catch(e){
@@ -2803,6 +2853,455 @@ function instalarPWA(){
     deferredPrompt = null;
   });
 }
+
+// ══════════════════════════════════════════════════════════════
+// SISTEMA MULTIUSUARIO — INVITACIONES Y ROLES
+// ══════════════════════════════════════════════════════════════
+
+const ADMIN_UID = '6addfa4f-9483-4f12-8f01-d07f10287ac5';
+let currentUserRole = null; // 'admin' | 'user'
+let currentUserProfile = null;
+
+function esAdmin(){
+  return sbUser && sbUser.id === ADMIN_UID;
+}
+
+// ── LOAD USER PROFILE ─────────────────────────────────────────
+async function cargarPerfilUsuario(){
+  if(!sbUser) return;
+  
+  if(esAdmin()){
+    currentUserRole = 'admin';
+    currentUserProfile = { role:'admin', max_events:999 };
+    // Show admin-only elements
+    const btnInv = el('btn-invitaciones');
+    if(btnInv) btnInv.style.display = 'inline-block';
+    return;
+  }
+  
+  // Load user profile from Supabase
+  const { data, error } = await sb
+    .from('melup_user_profiles')
+    .select('*')
+    .eq('user_id', sbUser.id)
+    .single();
+    
+  if(data){
+    currentUserProfile = data;
+    currentUserRole = data.role || 'user';
+  } else {
+    currentUserRole = 'user';
+    currentUserProfile = { role:'user', max_events:1 };
+  }
+}
+
+// ── LOAD EVENTS BASED ON ROLE ─────────────────────────────────
+async function fbLoadEvents(){
+  if(!sbUser) return;
+  
+  try{
+    let query = sb.from('melup_events').select('id, data, updated_at');
+    
+    if(!esAdmin()){
+      // Regular users only see their own events
+      query = query.eq('user_id', sbUser.id);
+    }
+    
+    const { data, error } = await query.order('updated_at', { ascending:false });
+    if(error) throw error;
+    appState.events = (data||[]).map(row=>row.data);
+  }catch(e){
+    console.warn('fbLoadEvents error', e);
+  }
+}
+
+// ── SAVE EVENT WITH USER ID ───────────────────────────────────
+async function sbSaveEvent(ev){
+  if(!sbUser) return;
+  setSyncDot(true);
+  const payload = {
+    id: ev.id,
+    user_id: sbUser.id,
+    data: ev,
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await sb.from('melup_events').upsert(payload, {onConflict:'id'});
+  if(error){ console.error('sbSave',error); toast('Error al guardar en la nube',true); }
+  else setSyncDot(false);
+}
+
+// ── CHECK MAX EVENTS FOR USER ─────────────────────────────────
+function puedeCrearEvento(){
+  if(esAdmin()) return true;
+  const max = currentUserProfile?.max_events || 1;
+  return appState.events.length < max;
+}
+
+// ── INVITATION SYSTEM ─────────────────────────────────────────
+function generarToken(){
+  return 'inv_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+}
+
+async function abrirInvitaciones(){
+  if(!esAdmin()){ toast('Solo el administrador puede gestionar usuarios', true); return; }
+  
+  const modal = document.createElement('div');
+  modal.id = 'inv-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  // Load existing users from melup_user_profiles
+  const { data: users } = await sb.from('melup_user_profiles')
+    .select('*').order('created_at', {ascending:false});
+
+  const userList = (users||[]).map(u=>{
+    const appURL = BASE_URL;
+    return `<div class="inv-item">
+      <div class="inv-dot active"></div>
+      <div class="inv-info">
+        <div class="inv-label">${u.label||u.user_id.slice(0,12)+'...'}</div>
+        <div class="inv-meta">Creado: ${new Date(u.created_at).toLocaleDateString('es')} · ${u.max_events} evento(s)</div>
+        <div class="inv-link">📧 ${u.email||'—'}</div>
+      </div>
+      <div class="inv-actions">
+        <button class="btn-copy-inv" onclick="copiarCredenciales('${u.email||''}','${u.temp_pass||''}')">📋 Credenciales</button>
+        <button class="btn-del-inv" onclick="eliminarUsuarioEvento('${u.user_id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--soft);font-size:12px;text-align:center;">No hay usuarios creados aún</p>';
+
+  modal.innerHTML = `
+    <div style="background:#1a1230;border:1px solid rgba(139,92,246,.3);border-radius:8px;
+                width:100%;max-width:520px;max-height:85vh;overflow-y:auto;padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--cream);">
+          👤 Usuarios de evento
+        </h2>
+        <button onclick="document.getElementById('inv-modal').remove()" 
+          style="background:none;border:none;color:var(--soft);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+                  padding:16px;border-radius:4px;margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:600;color:var(--cream);margin-bottom:12px;">Crear nuevo usuario</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <input id="new-user-label" placeholder="Nombre / etiqueta (ej: María García - Boda)" 
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+                   color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
+          <input id="new-user-email" placeholder="Email del usuario" type="email"
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+                   color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
+          <div style="display:flex;gap:8px;">
+            <input id="new-user-pass" placeholder="Contraseña (mín. 6 caracteres)"
+              style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+                     color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
+            <select id="new-user-maxev" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+                     color:var(--cream);padding:8px 10px;font-size:12px;outline:none;border-radius:3px;">
+              <option value="1">1 evento</option>
+              <option value="3">3 eventos</option>
+              <option value="5">5 eventos</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="generarPassAleatoria()" 
+              style="background:rgba(255,255,255,.08);color:var(--soft);border:1px solid rgba(255,255,255,.1);
+                     padding:7px 12px;font-size:11px;cursor:pointer;border-radius:3px;">
+              🎲 Generar pass
+            </button>
+            <button onclick="crearUsuarioEvento()" 
+              style="flex:1;background:var(--grad);color:white;border:none;padding:8px 16px;
+                     font-size:12px;font-weight:700;cursor:pointer;border-radius:3px;">
+              + Crear usuario
+            </button>
+          </div>
+          <div id="new-user-err" style="font-size:11px;color:#FF7070;min-height:16px;"></div>
+          <div id="new-user-result" style="display:none;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);
+               padding:12px;border-radius:4px;font-size:11px;color:#6FCF97;line-height:1.7;"></div>
+        </div>
+      </div>
+      
+      <div class="inv-list">${userList}</div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function crearInvitacion(){
+  if(!esAdmin()) return;
+  const label = document.getElementById('inv-label-input')?.value.trim() || 'Sin etiqueta';
+  const maxEv = parseInt(document.getElementById('inv-maxev')?.value || '1');
+  const token = generarToken();
+  const expires = new Date();
+  expires.setDate(expires.getDate() + 30); // 30 días
+  
+  const { error } = await sb.from('melup_invitations').insert({
+    id: token,
+    label,
+    max_events: maxEv,
+    created_by: sbUser.id,
+    expires_at: expires.toISOString()
+  });
+  
+  if(error){ toast('Error al crear invitación: '+error.message, true); return; }
+  
+  const invURL = BASE_URL + '#invite=' + token;
+  const modal = el('inv-modal');
+  if(modal) modal.remove();
+  
+  // Show success with link
+  await abrirInvitaciones();
+  copiarTexto(invURL);
+  toast('✅ Link copiado al portapapeles — compartilo con tu cliente');
+}
+
+async function eliminarInvitacion(id){
+  if(!confirm('¿Eliminar esta invitación?')) return;
+  await sb.from('melup_invitations').delete().eq('id', id);
+  const modal = el('inv-modal');
+  if(modal) modal.remove();
+  await abrirInvitaciones();
+  toast('Invitación eliminada');
+}
+
+function copiarTexto(txt){
+  navigator.clipboard.writeText(txt).then(()=>toast('📋 Copiado al portapapeles'));
+}
+
+// ── REGISTER WITH INVITATION ──────────────────────────────────
+async function checkInviteURL(){
+  const hash = window.location.hash.replace('#','');
+  if(!hash.startsWith('invite=')) return false;
+  const token = hash.slice(7);
+  if(!token) return false;
+  
+  // Validate token
+  const { data: inv, error } = await sb
+    .from('melup_invitations').select('*').eq('id', token).single();
+  
+  if(error || !inv){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    el('register-screen').classList.add('active');
+    el('reg-inv-badge').textContent = '✕ Invitación inválida o expirada';
+    el('reg-inv-badge').style.background = 'rgba(231,76,60,.15)';
+    el('reg-inv-badge').style.color = '#E74C3C';
+    el('reg-btn').disabled = true;
+    return true;
+  }
+  
+  if(inv.used_at){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    el('register-screen').classList.add('active');
+    el('reg-inv-badge').textContent = '✕ Esta invitación ya fue usada';
+    el('reg-inv-badge').style.color = '#E74C3C';
+    el('reg-btn').disabled = true;
+    return true;
+  }
+  
+  // Valid invitation — show register form
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  el('register-screen').classList.add('active');
+  el('reg-logo').src = LOGO_B64;
+  el('reg-inv-badge').textContent = '✓ Invitación válida — ' + (inv.label||'');
+  el('reg-sub').textContent = `Creá tu cuenta para gestionar hasta ${inv.max_events} evento(s).`;
+  
+  // Store token for registration
+  window._pendingInvToken = token;
+  window._pendingInvMaxEv = inv.max_events;
+  return true;
+}
+
+async function registrarseConInvitacion(){
+  const email = el('reg-email').value.trim();
+  const pass  = el('reg-pass').value;
+  const pass2 = el('reg-pass2').value;
+  const err   = el('reg-err');
+  const btn   = el('reg-btn');
+  
+  if(!email){ err.textContent='Ingresá tu email.'; return; }
+  if(pass.length < 6){ err.textContent='La contraseña debe tener al menos 6 caracteres.'; return; }
+  if(pass !== pass2){ err.textContent='Las contraseñas no coinciden.'; return; }
+  if(!window._pendingInvToken){ err.textContent='Token de invitación inválido.'; return; }
+  
+  btn.disabled=true; btn.textContent='Creando cuenta...'; err.textContent='';
+  
+  // Create auth user
+  const { data, error } = await sb.auth.signUp({ email, password:pass });
+  if(error){
+    err.textContent = error.message;
+    btn.disabled=false; btn.textContent='Crear cuenta →';
+    return;
+  }
+  
+  const newUser = data.user;
+  if(!newUser){ err.textContent='Error al crear usuario.'; btn.disabled=false; btn.textContent='Crear cuenta →'; return; }
+  
+  // Create user profile
+  await sb.from('melup_user_profiles').insert({
+    user_id: newUser.id,
+    role: 'user',
+    max_events: window._pendingInvMaxEv || 1,
+    invitation_id: window._pendingInvToken
+  });
+  
+  // Mark invitation as used
+  await sb.from('melup_invitations').update({
+    used_by: newUser.id,
+    used_at: new Date().toISOString()
+  }).eq('id', window._pendingInvToken);
+  
+  // Auto sign in
+  await sb.auth.signInWithPassword({ email, password:pass });
+  toast('✅ ¡Cuenta creada! Bienvenido/a a Melup.');
+}
+
+// ── OVERRIDE goTo TO CHECK PERMISSIONS ───────────────────────
+const _origGoTo = goTo;
+function goTo(screen){
+  // Check if user can create events
+  if(screen === 'create-event' && !esAdmin() && !puedeCrearEvento()){
+    toast('Ya alcanzaste el límite de eventos de tu plan.', true);
+    return;
+  }
+  _origGoTo(screen);
+}
+
+// ── SHOW USER BADGE IN DASHBOARD ─────────────────────────────
+function mostrarBadgeUsuario(){
+  if(esAdmin()) return;
+  const header = document.querySelector('#dashboard .dash-body h1, #dashboard .page-h');
+  if(header && !document.getElementById('user-badge-elem')){
+    const badge = document.createElement('span');
+    badge.id = 'user-badge-elem';
+    badge.className = 'user-badge';
+    badge.style.marginLeft = '10px';
+    badge.textContent = '👤 Mi panel';
+    header.appendChild(badge);
+  }
+}
+
+
+function generarPassAleatoria(){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+  let pass = '';
+  for(let i=0;i<10;i++) pass += chars[Math.floor(Math.random()*chars.length)];
+  const inp = document.getElementById('new-user-pass');
+  if(inp){ inp.value = pass; inp.type = 'text'; }
+}
+
+async function crearUsuarioEvento(){
+  const label   = document.getElementById('new-user-label')?.value.trim();
+  const email   = document.getElementById('new-user-email')?.value.trim();
+  const pass    = document.getElementById('new-user-pass')?.value;
+  const maxEv   = parseInt(document.getElementById('new-user-maxev')?.value||'1');
+  const errEl   = document.getElementById('new-user-err');
+  const resEl   = document.getElementById('new-user-result');
+
+  if(!label){ errEl.textContent='Ingresá un nombre/etiqueta.'; return; }
+  if(!email){ errEl.textContent='Ingresá un email.'; return; }
+  if(!pass||pass.length<6){ errEl.textContent='La contraseña debe tener al menos 6 caracteres.'; return; }
+  errEl.textContent='';
+
+  // Create user via Supabase Admin API (using service role would be ideal,
+  // but we use signUp and store profile — user gets email confirmation)
+  // Instead: store pending user in melup_user_profiles with temp credentials
+  // and user logs in directly with those credentials
+  
+  // We use Supabase Auth signUp
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  
+  if(error){
+    errEl.textContent = error.message;
+    return;
+  }
+
+  const newUid = data.user?.id;
+  if(!newUid){ errEl.textContent='Error al crear el usuario.'; return; }
+
+  // Save profile
+  await sb.from('melup_user_profiles').upsert({
+    user_id: newUid,
+    role: 'user',
+    max_events: maxEv,
+    label: label,
+    email: email,
+    temp_pass: pass,
+    created_at: new Date().toISOString()
+  });
+
+  // Show credentials to copy
+  const appURL = BASE_URL;
+  resEl.style.display = 'block';
+  resEl.innerHTML = `
+    <strong style="color:white;">✅ Usuario creado. Credenciales para compartir:</strong><br><br>
+    🌐 App: <span style="color:var(--gold);">${appURL}</span><br>
+    📧 Email: <span style="color:var(--gold);">${email}</span><br>
+    🔑 Contraseña: <span style="color:var(--gold);">${pass}</span><br><br>
+    <button onclick="copiarCredenciales('${email}','${pass}','${appURL}')"
+      style="background:var(--grad);color:white;border:none;padding:7px 16px;
+             font-size:11px;font-weight:700;cursor:pointer;border-radius:3px;width:100%;">
+      📋 Copiar mensaje para enviar por WhatsApp
+    </button>
+  `;
+
+  // Clear form
+  ['new-user-label','new-user-email','new-user-pass'].forEach(id=>{
+    const el2 = document.getElementById(id);
+    if(el2) el2.value = '';
+  });
+}
+
+function copiarCredenciales(email, pass, appURL){
+  const msg = `Hola! Te comparto el acceso a tu panel de Melup 🎉
+
+🌐 Ingresá desde: ${appURL||BASE_URL}
+📧 Email: ${email}
+🔑 Contraseña: ${pass}
+
+Desde ahí podés crear tu evento, generar los QR para cada mesa y ver las fotos que van subiendo tus invitados en tiempo real.
+
+¡Cualquier duda me avisás!`;
+  navigator.clipboard.writeText(msg).then(()=>toast('📋 Mensaje copiado — pegalo en WhatsApp'));
+}
+
+async function eliminarUsuarioEvento(uid){
+  if(!confirm('¿Eliminar este usuario? Sus eventos quedarán en la base de datos.')) return;
+  await sb.from('melup_user_profiles').delete().eq('user_id', uid);
+  const modal = el('inv-modal');
+  if(modal) modal.remove();
+  await abrirInvitaciones();
+  toast('Usuario eliminado');
+}
+
 </script>
+
+<!-- REGISTER SCREEN (invitation only) -->
+<div id="register-screen" class="screen">
+  <div class="register-wrap">
+    <div class="register-box">
+      <div style="text-align:center;margin-bottom:20px;">
+        <img src="" id="reg-logo" style="width:80px;height:auto;border-radius:16px;" alt="Melup">
+      </div>
+      <h2 class="register-title">Crear tu cuenta</h2>
+      <div class="inv-badge" id="reg-inv-badge">✓ Invitación válida</div>
+      <p class="register-sub" id="reg-sub">Completá tus datos para acceder a tu panel de evento.</p>
+      <div class="login-field">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="login-field">
+        <label>Repetir contraseña</label>
+        <input type="password" id="reg-pass2" placeholder="Igual que la anterior">
+      </div>
+      <button class="login-btn" id="reg-btn" onclick="registrarseConInvitacion()">Crear cuenta →</button>
+      <div class="login-err" id="reg-err"></div>
+      <div style="margin-top:14px;text-align:center;font-size:10px;color:var(--soft);">
+        ¿Ya tenés cuenta? <a onclick="mostrarLogin()" style="color:var(--gold);cursor:pointer;">Ingresá acá</a>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

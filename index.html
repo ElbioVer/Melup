@@ -1044,13 +1044,19 @@ async function hacerLogin(){
     // Login OK
     sbUser = data.user;
     btn.textContent='Cargando...';
-    await cargarPerfilUsuario();
-    await fbLoadEvents();
-    startRealtime();
-    mostrarBadgeUsuario();
-    goTo('dashboard');
+    
+    try{ await cargarPerfilUsuario(); }catch(e){ console.warn('perfil error (non-fatal):', e); }
+    try{ await fbLoadEvents(); }catch(e){ console.warn('loadEvents error (non-fatal):', e); }
+    try{ startRealtime(); }catch(e){ console.warn('realtime error (non-fatal):', e); }
+    try{ mostrarBadgeUsuario(); }catch(e){ console.warn('badge error (non-fatal):', e); }
+    
+    btn.disabled=false;
+    _origGoTo('dashboard');
   }catch(e){
-    err.textContent='Error de conexión. Intentá de nuevo.';
+    console.error('Login error:', e);
+    err.textContent = e.message && e.message.includes('fetch') 
+      ? 'Sin conexión. Verificá tu internet.' 
+      : 'Error: '+(e.message||'Intentá de nuevo.');
     btn.disabled=false; btn.textContent='Ingresar →';
   }
 }
@@ -2823,7 +2829,7 @@ async function cargarPerfilUsuario(){
       .from('melup_user_profiles')
       .select('*')
       .eq('user_id', sbUser.id)
-      .maybeSingle(); // maybeSingle() returns null instead of error if not found
+      .maybeSingle();
       
     if(data){
       currentUserProfile = data;
@@ -2847,15 +2853,14 @@ async function fbLoadEvents(){
     let query = sb.from('melup_events').select('id, data, updated_at');
     
     if(!esAdmin()){
-      // Regular users only see their own events
       query = query.eq('user_id', sbUser.id);
     }
     
     const { data, error } = await query.order('updated_at', { ascending:false });
-    if(error) throw error;
+    if(error){ console.warn('fbLoadEvents query error:', error); return; }
     appState.events = (data||[]).map(row=>row.data);
   }catch(e){
-    console.warn('fbLoadEvents error', e);
+    console.warn('fbLoadEvents exception:', e);
   }
 }
 
@@ -3227,19 +3232,21 @@ async function eliminarUsuarioEvento(uid){
       <h2 class="register-title">Crear tu cuenta</h2>
       <div class="inv-badge" id="reg-inv-badge">✓ Invitación válida</div>
       <p class="register-sub" id="reg-sub">Completá tus datos para acceder a tu panel de evento.</p>
+      <form onsubmit="registrarseConInvitacion();return false;" autocomplete="on">
       <div class="login-field">
         <label>Email</label>
-        <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email">
+        <input type="email" id="reg-email" name="email" placeholder="tu@email.com" autocomplete="email">
       </div>
       <div class="login-field">
         <label>Contraseña</label>
-        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        <input type="password" id="reg-pass" name="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
       </div>
       <div class="login-field">
         <label>Repetir contraseña</label>
-        <input type="password" id="reg-pass2" placeholder="Igual que la anterior">
+        <input type="password" id="reg-pass2" name="password2" placeholder="Igual que la anterior" autocomplete="new-password">
       </div>
-      <button class="login-btn" id="reg-btn" onclick="registrarseConInvitacion()">Crear cuenta →</button>
+      <button type="submit" class="login-btn" id="reg-btn">Crear cuenta →</button>
+      </form>
       <div class="login-err" id="reg-err"></div>
       <div style="margin-top:14px;text-align:center;font-size:10px;color:var(--soft);">
         ¿Ya tenés cuenta? <a onclick="mostrarLogin()" style="color:var(--gold);cursor:pointer;">Ingresá acá</a>

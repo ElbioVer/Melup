@@ -650,8 +650,6 @@ a{color:var(--gold);text-decoration:none;}
       <button class="btn btn-ghost" onclick="goTo(&#39;home&#39;)">Inicio</button>
       <button class="btn btn-ghost btn-sm" id="btn-invitaciones" onclick="abrirInvitaciones()" 
         style="display:none;font-size:11px;">👤 Usuarios</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportarEventos()" title="Exportar eventos">⬇ Exportar</button>
-      <label class="btn btn-ghost btn-sm" style="cursor:pointer;padding:6px 14px;font-size:11px;" title="Importar eventos">⬆ Importar<input type="file" accept=".json" onchange="importarEventos(event)" style="display:none;"></label>
       <button class="btn btn-ghost btn-sm" onclick="cerrarSesion()">🔒 Salir</button>
       <button class="btn btn-gold" onclick="goTo(&#39;create-event&#39;)">+ Nuevo evento</button>
     </div>
@@ -1339,9 +1337,13 @@ function checkURL(){
 
 // DASHBOARD
 function renderDashboard(){
-  // Show admin button if admin
+  // Show/hide admin elements based on role
+  const isAdm = sbUser && sbUser.id === ADMIN_UID;
   const btnInv = el('btn-invitaciones');
-  if(btnInv) btnInv.style.display = (sbUser && sbUser.id === ADMIN_UID) ? 'inline-block' : 'none';
+  if(btnInv) btnInv.style.display = isAdm ? 'inline-block' : 'none';
+  // Hide "Mi panel" badge for admin
+  const badge = el('user-badge-elem');
+  if(badge && isAdm) badge.style.display = 'none';
   const grid=el('events-grid');
   const now=new Date();
   let html='';
@@ -2821,10 +2823,12 @@ async function cargarPerfilUsuario(){
   if(esAdmin()){
     currentUserRole = 'admin';
     currentUserProfile = { role:'admin', max_events:999 };
+    console.log('✅ Admin detected:', sbUser.id);
     const btnInv = el('btn-invitaciones');
     if(btnInv) btnInv.style.display = 'inline-block';
     return;
   }
+  console.log('👤 Regular user detected:', sbUser.id, '| Admin UID:', ADMIN_UID);
   
   // Load user profile — wrapped in try/catch so it never breaks login
   try{
@@ -3109,7 +3113,7 @@ async function registrarseConInvitacion(){
 
 // ── SHOW USER BADGE IN DASHBOARD ─────────────────────────────
 function mostrarBadgeUsuario(){
-  if(esAdmin()) return;
+  if(!sbUser || sbUser.id === ADMIN_UID) return;
   const header = document.querySelector('#dashboard .dash-body h1, #dashboard .page-h');
   if(header && !document.getElementById('user-badge-elem')){
     const badge = document.createElement('span');

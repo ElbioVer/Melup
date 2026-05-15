@@ -2755,76 +2755,15 @@ async function agregarURLManual(){
 
 <script>
 // Register Service Worker for PWA
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', async ()=>{
     try{
-      // Inline service worker via Blob (no external file needed)
-      const swCode = `// Melup Service Worker v1.0
-const CACHE_NAME = 'melup-v1';
-const STATIC_ASSETS = [
-  '/Melup/',
-  '/Melup/index.html',
-  '/Melup/manifest.json',
-  '/Melup/icons/icon-192.png',
-  '/Melup/icons/icon-512.png',
-];
-
-// Install: cache static assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(STATIC_ASSETS).catch(err => {
-        console.warn('Cache install error:', err);
-      });
-    })
-  );
-  self.skipWaiting();
-});
-
-// Activate: clean old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    )
-  );
-  self.clients.claim();
-});
-
-// Fetch: network first, fallback to cache
-self.addEventListener('fetch', event => {
-  // Skip non-GET and external requests (Supabase, Cloudinary)
-  if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
-  if (url.hostname !== self.location.hostname) return;
-
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Cache successful responses
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache if offline
-        return caches.match(event.request).then(cached => {
-          return cached || caches.match('/Melup/');
-        });
-      })
-  );
-});
-`;
-      const blob = new Blob([swCode], {type: 'application/javascript'});
+      const swCode = `self.addEventListener('fetch',()=>{});`;
+      const blob = new Blob([swCode], {type:'application/javascript'});
       const swURL = URL.createObjectURL(blob);
-      const reg = await navigator.serviceWorker.register(swURL, {scope: '/Melup/'});
-      console.log('✅ SW registered inline');
+      await navigator.serviceWorker.register(swURL);
     }catch(err){
-      console.warn('SW registration failed:', err);
+      // SW optional - app works without it
     }
   });
 }
@@ -2873,23 +2812,28 @@ async function cargarPerfilUsuario(){
   if(esAdmin()){
     currentUserRole = 'admin';
     currentUserProfile = { role:'admin', max_events:999 };
-    // Show admin-only elements
     const btnInv = el('btn-invitaciones');
     if(btnInv) btnInv.style.display = 'inline-block';
     return;
   }
   
-  // Load user profile from Supabase
-  const { data, error } = await sb
-    .from('melup_user_profiles')
-    .select('*')
-    .eq('user_id', sbUser.id)
-    .single();
-    
-  if(data){
-    currentUserProfile = data;
-    currentUserRole = data.role || 'user';
-  } else {
+  // Load user profile — wrapped in try/catch so it never breaks login
+  try{
+    const { data, error } = await sb
+      .from('melup_user_profiles')
+      .select('*')
+      .eq('user_id', sbUser.id)
+      .maybeSingle(); // maybeSingle() returns null instead of error if not found
+      
+    if(data){
+      currentUserProfile = data;
+      currentUserRole = data.role || 'user';
+    } else {
+      currentUserRole = 'user';
+      currentUserProfile = { role:'user', max_events:1 };
+    }
+  }catch(e){
+    console.warn('cargarPerfilUsuario error (non-fatal):', e);
     currentUserRole = 'user';
     currentUserProfile = { role:'user', max_events:1 };
   }

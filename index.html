@@ -649,7 +649,7 @@ a{color:var(--gold);text-decoration:none;}
     <div class="nav-btns">
       <button class="btn btn-ghost" onclick="goTo(&#39;home&#39;)">Inicio</button>
       <button class="btn btn-ghost btn-sm" id="btn-invitaciones" onclick="abrirInvitaciones()" 
-        style="display:none;font-size:11px;">🔗 Invitaciones</button>
+        style="display:none;font-size:11px;">👤 Usuarios</button>
       <button class="btn btn-ghost btn-sm" onclick="exportarEventos()" title="Exportar eventos">⬇ Exportar</button>
       <label class="btn btn-ghost btn-sm" style="cursor:pointer;padding:6px 14px;font-size:11px;" title="Importar eventos">⬆ Importar<input type="file" accept=".json" onchange="importarEventos(event)" style="display:none;"></label>
       <button class="btn btn-ghost btn-sm" onclick="cerrarSesion()">🔒 Salir</button>
@@ -1339,6 +1339,9 @@ function checkURL(){
 
 // DASHBOARD
 function renderDashboard(){
+  // Show admin button if admin
+  const btnInv = el('btn-invitaciones');
+  if(btnInv) btnInv.style.display = (sbUser && sbUser.id === ADMIN_UID) ? 'inline-block' : 'none';
   const grid=el('events-grid');
   const now=new Date();
   let html='';

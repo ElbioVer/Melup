@@ -610,6 +610,10 @@ a{color:var(--gold);text-decoration:none;}
   <nav class="app-nav" style="position:absolute;top:0;left:0;right:0;background:transparent;border-bottom:none;z-index:10;padding:16px 28px;justify-content:flex-end;">
     <div class="nav-btns">
       <button class="btn btn-ghost" onclick="irAlAdmin()" style="color:rgba(255,255,255,0.8);">Admin</button>
+      <button id="btn-gestionar-usuarios" onclick="abrirInvitaciones()" 
+        style="display:none;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);
+               color:#A78BFA;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;
+               border-radius:20px;">👤 Gestionar usuarios</button>
       <button id="pwa-install-btn" onclick="instalarPWA()" 
         style="display:none;align-items:center;gap:5px;background:rgba(255,77,166,.15);
         border:1px solid rgba(255,77,166,.3);color:rgba(255,255,255,.8);
@@ -648,10 +652,9 @@ a{color:var(--gold);text-decoration:none;}
     <div class="app-logo"><img src="data:image/jpeg;base64,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" style="height:44px;width:auto;border-radius:20%;" alt="Melup"></div>
     <div class="nav-btns">
       <button class="btn btn-ghost" onclick="goTo(&#39;home&#39;)">Inicio</button>
-      <button class="btn btn-ghost btn-sm" id="btn-invitaciones" onclick="abrirInvitaciones()" 
-        style="display:none;font-size:11px;">👤 Usuarios</button>
+      
       <button class="btn btn-ghost btn-sm" onclick="cerrarSesion()">🔒 Salir</button>
-      <button class="btn btn-gold" onclick="goTo(&#39;create-event&#39;)">+ Nuevo evento</button>
+      
     </div>
   </nav>
   <div class="dash-body">
@@ -1238,6 +1241,11 @@ function goTo(screen){
   el(screen).classList.add('active');
   window.scrollTo(0,0);
   if(screen==='dashboard') renderDashboard();
+  // Show/hide admin button on any screen
+  const isAdm = sbUser && sbUser.id === ADMIN_UID;
+  ['btn-invitaciones','btn-gestionar-usuarios'].forEach(id=>{
+    const b = el(id); if(b) b.style.display = isAdm ? 'inline-block' : 'none';
+  });
 }
 
 // URL ROUTING
@@ -1339,8 +1347,10 @@ function checkURL(){
 function renderDashboard(){
   // Show/hide admin elements based on role
   const isAdm = sbUser && sbUser.id === ADMIN_UID;
-  const btnInv = el('btn-invitaciones');
-  if(btnInv) btnInv.style.display = isAdm ? 'inline-block' : 'none';
+  // Show/hide admin elements
+  ['btn-invitaciones','btn-gestionar-usuarios'].forEach(id=>{
+    const b = el(id); if(b) b.style.display = isAdm ? 'inline-block' : 'none';
+  });
   // Hide "Mi panel" badge for admin
   const badge = el('user-badge-elem');
   if(badge && isAdm) badge.style.display = 'none';
@@ -2808,7 +2818,7 @@ function instalarPWA(){
 // SISTEMA MULTIUSUARIO — INVITACIONES Y ROLES
 // ══════════════════════════════════════════════════════════════
 
-const ADMIN_UID = '6addfa4f-9483-4f12-8f01-d07f10287ac5';
+const ADMIN_UID = 'ee51e244-001e-4737-961a-d2ba1ee5d480';
 let currentUserRole = null; // 'admin' | 'user'
 let currentUserProfile = null;
 
@@ -2823,12 +2833,10 @@ async function cargarPerfilUsuario(){
   if(esAdmin()){
     currentUserRole = 'admin';
     currentUserProfile = { role:'admin', max_events:999 };
-    console.log('✅ Admin detected:', sbUser.id);
-    const btnInv = el('btn-invitaciones');
+  const btnInv = el('btn-invitaciones');
     if(btnInv) btnInv.style.display = 'inline-block';
     return;
   }
-  console.log('👤 Regular user detected:', sbUser.id, '| Admin UID:', ADMIN_UID);
   
   // Load user profile — wrapped in try/catch so it never breaks login
   try{

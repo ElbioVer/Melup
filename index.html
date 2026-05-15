@@ -1051,7 +1051,7 @@ async function hacerLogin(){
     try{ mostrarBadgeUsuario(); }catch(e){ console.warn('badge error (non-fatal):', e); }
     
     btn.disabled=false;
-    _origGoTo('dashboard');
+    goTo('dashboard');
   }catch(e){
     console.error('Login error:', e);
     err.textContent = e.message && e.message.includes('fetch') 
@@ -3102,16 +3102,7 @@ async function registrarseConInvitacion(){
   toast('✅ ¡Cuenta creada! Bienvenido/a a Melup.');
 }
 
-// ── OVERRIDE goTo TO CHECK PERMISSIONS ───────────────────────
-const _origGoTo = goTo;
-function goTo(screen){
-  // Check if user can create events
-  if(screen === 'create-event' && !esAdmin() && !puedeCrearEvento()){
-    toast('Ya alcanzaste el límite de eventos de tu plan.', true);
-    return;
-  }
-  _origGoTo(screen);
-}
+// goTo permissions check integrated directly
 
 // ── SHOW USER BADGE IN DASHBOARD ─────────────────────────────
 function mostrarBadgeUsuario(){

@@ -923,7 +923,7 @@ a{color:var(--gold);text-decoration:none;}
     </div>
     <button class="btn-submit" onclick="gSubir()">Compartir con el álbum →</button>
     <div id="g-album-section" style="display:none;">
-      <div class="guest-album-title">Álbum del evento <span id="g-album-count">(0)</span></div>
+      <div class="guest-album-title">Mis fotos subidas <span id="g-album-count">(0)</span></div>
       <div class="guest-photo-grid" id="g-photo-grid"></div>
     </div>
     <div id="g-back-area" style="text-align:center;margin-top:18px;">
@@ -1821,6 +1821,8 @@ function abrirVistaInvitado(mesaId,evId){
   appState.guestEvId=id;
   appState.guestMesaId=mesaId||null;
   appState.guestFiles=[];
+  // Track this session's uploaded photo IDs
+  if(!window.myUploadedIds) window.myUploadedIds = new Set();
   appState.guestMesaNombre=null;
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');
@@ -1929,6 +1931,9 @@ async function gSubir(){
       const src=await subirCloudinary(file,ev.name,mesaNombreFolder,author);
       const mediaItem = {id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now(),aprobada:null};
       ev.media.push(mediaItem);
+      // Track this upload as mine for this session
+      if(!window.myUploadedIds) window.myUploadedIds = new Set();
+      window.myUploadedIds.add(mediaItem.id);
       // Save guest upload to Supabase public table
       await guardarUploadInvitado(ev.id, mediaItem);
     }catch(err){toast('Error subiendo archivo',true);}
@@ -1936,6 +1941,8 @@ async function gSubir(){
   }
   txt.textContent='¡'+done+' archivo(s) compartidos! ✓';
   appState.guestFiles=[];
+  // Track this session's uploaded photo IDs
+  if(!window.myUploadedIds) window.myUploadedIds = new Set();
   el('g-previews').style.display='none';el('g-previews').innerHTML='';
   renderGuestAlbum();
   toast(done+' archivo(s) compartidos ✓');
@@ -1945,12 +1952,17 @@ function renderGuestAlbum(){
   const ev=appState.events.find(e=>e.id===appState.guestEvId);
   if(!ev) return;
   const sec=el('g-album-section');
-  if(!ev.media.length){sec.style.display='none';return;}
+  
+  // Only show photos uploaded by THIS session
+  const myIds = window.myUploadedIds || new Set();
+  const myMedia = ev.media.filter(m => myIds.has(m.id));
+  
+  if(!myMedia.length){sec.style.display='none';return;}
   sec.style.display='block';
-  el('g-album-count').textContent='('+ev.media.length+')';
-  el('g-photo-grid').innerHTML=ev.media.map((m,i)=>{
-    if(m.type==='video') return `<div class="guest-photo" data-idx="${i}"><video src="${m.src}" muted preload="metadata" onerror="this.closest('.guest-photo').remove();limpiarMediaRota('${ev.id}')"></video><div class="guest-vid-tag">▶</div></div>`;
-    return `<div class="guest-photo" data-idx="${i}"><img src="${m.src}" loading="lazy" onerror="this.closest('.guest-photo').remove();limpiarMediaRota('${ev.id}')"></div>`;
+  el('g-album-count').textContent='('+myMedia.length+')';
+  el('g-photo-grid').innerHTML=myMedia.map((m,i)=>{
+    if(m.type==='video') return `<div class="guest-photo" data-idx="${i}"><video src="${m.src}" muted preload="metadata"></video><div class="guest-vid-tag">▶</div></div>`;
+    return `<div class="guest-photo" data-idx="${i}"><img src="${m.src}" loading="lazy"></div>`;
   }).join('');
 }
 

@@ -1153,12 +1153,15 @@ async function sbSaveEvent(ev){
 
 async function sbDeleteEvent(evId){
   if(!sbUser) return;
-  const { error } = await sb.from('melup_events').delete().eq('id',evId).eq('user_id',sbUser.id);
-  if(error) console.error('sbDelete',error);
+  console.log('🗑 Deleting event from Supabase:', evId);
+  const { error, data } = await sb.from('melup_events').delete().eq('id',evId).eq('user_id',sbUser.id).select();
+  if(error) console.error('sbDelete error:', error);
+  else console.log('🗑 Deleted from Supabase:', data);
 }
 
 // Override saveState
 function saveState(){
+  if(!appState.currentId) return; // Don't save if no current event
   const ev = appState.events.find(e=>e.id===appState.currentId);
   if(ev) sbSaveEvent(ev);
 }
@@ -1188,6 +1191,7 @@ function startRealtime(){
         const newData = payload.new?.data;
         const oldId   = payload.old?.id;
         if(payload.eventType==='DELETE' && oldId){
+          console.log('🔄 Realtime: event deleted', oldId);
           appState.events = appState.events.filter(e=>e.id!==oldId);
         } else if(newData){
           const idx = appState.events.findIndex(e=>e.id===newData.id);
@@ -1796,13 +1800,16 @@ function ejecutarEliminar(){
   if(appState.currentId===id) appState.currentId=null;
   appState.pendingDeleteId=null;
   cerrarConfirm();
+  // IMPORTANT: clear currentId BEFORE saveState so it doesn't re-save deleted event
+  appState.currentId = null;
   // Delete from Supabase immediately
   sbDeleteEvent(id).then(()=>{
+    console.log('✅ Event deleted, refreshing dashboard');
     toast('"'+name+'" eliminado ✓');
+    renderDashboard();
   });
   // Also delete guest uploads for this event
   sb.from('melup_guest_uploads').delete().eq('event_id',id).then(()=>{});
-  renderDashboard();
   goTo('dashboard');
 }
 

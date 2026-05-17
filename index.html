@@ -1495,23 +1495,25 @@ function copiarStr(s){
 }
 
 // MESAS
-function agregarMesa(){
+async function agregarMesa(){
   const nombre=el('new-mesa-name').value.trim();
   if(!nombre){toast('Ingresá el nombre de la mesa',true);return;}
   const ev=appState.events.find(e=>e.id===appState.currentId);
   if(!ev) return;
   if(!ev.mesas) ev.mesas=[];
   ev.mesas.push({id:uid(),name:nombre});
-  saveState();
   el('new-mesa-name').value='';
   renderMesas();
+  await sbSaveEvent(ev);
   toast('"'+nombre+'" agregada ✓');
 }
-function eliminarMesa(mid){
+async function eliminarMesa(mid){
   const ev=appState.events.find(e=>e.id===appState.currentId);
   if(!ev) return;
   ev.mesas=(ev.mesas||[]).filter(m=>m.id!==mid);
-  saveState();renderMesas();toast('Mesa eliminada');
+  renderMesas();
+  await sbSaveEvent(ev);
+  toast('Mesa eliminada');
 }
 function renderMesas(){
   const ev=appState.events.find(e=>e.id===appState.currentId);
@@ -1773,8 +1775,9 @@ function crearEvento(){
   pendingCoverImage = null;
   if(el('cover-preview-wrap')) el('cover-preview-wrap').innerHTML='<div style="font-size:28px;margin-bottom:8px;">🖼</div><div style="font-size:12px;color:var(--soft);">Tocá para subir una foto</div>';
   appState.events.push(ev);
-  saveState();
-  toast('¡Evento "'+name+'" creado!');
+  sbSaveEvent(ev).then(()=>{
+    toast('¡Evento "'+name+'" creado!');
+  });
   el('ev-name').value='';el('ev-desc').value='';el('ev-start').value='';el('ev-end').value='';el('ev-place').value='';
   abrirEvento(ev.id);
 }
@@ -2088,12 +2091,12 @@ function guardarEdicion(){
   ev.type     = el('edit-type').value;
   ev.template = editTemplate;
   if(pendingEditCoverImage){ ev.coverImage = pendingEditCoverImage; pendingEditCoverImage=null; }
-  saveState();
   cerrarEditar();
-  toast('Evento actualizado ✓');
-  renderDashboard();
-  // If currently viewing this event, refresh the detail view too
-  if(appState.currentId===editingId) abrirEvento(editingId);
+  sbSaveEvent(ev).then(()=>{
+    toast('Evento actualizado ✓');
+    renderDashboard();
+    if(appState.currentId===editingId) abrirEvento(editingId);
+  });
 }
 
 // ── SINCRONIZAR DESDE CLOUDINARY ──

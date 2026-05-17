@@ -1558,6 +1558,9 @@ function renderAlbum(filtro){
   if(filtro!==undefined) currentAlbumFilter=filtro;
   const ev=appState.events.find(e=>e.id===appState.currentId);
   if(!ev) return;
+  // Show share button as soon as album is rendered
+  const linkBtn = el('btn-link-presentacion');
+  if(linkBtn) linkBtn.style.display = 'inline-flex';
   el('album-count').textContent=ev.media.length;
 
   // Filters
@@ -2471,9 +2474,7 @@ function abrirSlideshow(){
   el('slide-logo').src = LOGO_B64;
 
   // Update link
-  const linkBtn = el('btn-link-presentacion');
   window._showURL = BASE_URL + '#show=' + ev.id;
-  linkBtn.style.display = 'inline-flex';
 
   // Show screen
   el('slideshow-screen').classList.add('active');

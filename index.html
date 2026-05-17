@@ -1795,8 +1795,14 @@ function ejecutarEliminar(){
   appState.events=appState.events.filter(e=>e.id!==id);
   if(appState.currentId===id) appState.currentId=null;
   appState.pendingDeleteId=null;
-  saveState();cerrarConfirm();
-  toast('"'+name+'" eliminado ✓');
+  cerrarConfirm();
+  // Delete from Supabase immediately
+  sbDeleteEvent(id).then(()=>{
+    toast('"'+name+'" eliminado ✓');
+  });
+  // Also delete guest uploads for this event
+  sb.from('melup_guest_uploads').delete().eq('event_id',id).then(()=>{});
+  renderDashboard();
   goTo('dashboard');
 }
 
@@ -2301,15 +2307,7 @@ if(_guardarOriginal){
   };
 }
 
-// Patch eliminarEvento to also delete from Supabase
-const _origEliminar = typeof eliminarEvento !== 'undefined' ? eliminarEvento : null;
-if(_origEliminar){
-  eliminarEvento = async function(){
-    const id = appState.pendingDeleteId;
-    _origEliminar();
-    if(id) await sbDeleteEvent(id);
-  };
-}
+// eliminarEvento already handles Supabase deletion
 
 // Patch subirArchivos / media uploads to sync after upload
 const _origSubir = typeof subirArchivos !== 'undefined' ? subirArchivos : null;

@@ -1154,7 +1154,7 @@ async function sbSaveEvent(ev){
 async function sbDeleteEvent(evId){
   if(!sbUser) return;
   console.log('🗑 Deleting event from Supabase:', evId);
-  const { error, data } = await sb.from('melup_events').delete().eq('id',evId).eq('user_id',sbUser.id).select();
+  const { error, data } = await sb.from('melup_events').delete().eq('id',evId).select();
   if(error) console.error('sbDelete error:', error);
   else console.log('🗑 Deleted from Supabase:', data);
 }

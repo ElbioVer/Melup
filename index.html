@@ -300,6 +300,41 @@ a{color:var(--gold);text-decoration:none;}
 .guest-name-field input::placeholder{color:rgba(255,255,255,.35);font-size:14px;}
 .guest-name-hint{font-size:10px;color:rgba(255,200,80,.6);margin-top:7px;text-align:center;letter-spacing:.02em;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+/* ── PRESENTATION SETTINGS ──────────────────────────────── */
+.pres-section{ background:var(--card);border:1px solid var(--border);
+               border-radius:6px;padding:20px;margin-bottom:14px; }
+.pres-section-title{ font-size:12px;font-weight:700;color:var(--cream);
+                     margin-bottom:4px;display:flex;align-items:center;gap:7px; }
+.pres-section-desc{ font-size:10px;color:var(--soft);margin-bottom:14px;line-height:1.6; }
+.pres-toggle{ display:flex;align-items:center;justify-content:space-between;
+              padding:10px 14px;background:rgba(255,255,255,.03);
+              border:1px solid var(--border);border-radius:4px;margin-bottom:12px; }
+.pres-toggle-label{ font-size:12px;color:var(--cream); }
+.toggle-sw{ position:relative;width:40px;height:22px;cursor:pointer; }
+.toggle-sw input{ opacity:0;width:0;height:0; }
+.toggle-track{ position:absolute;inset:0;background:rgba(255,255,255,.1);
+               border-radius:11px;transition:.3s; }
+.toggle-sw input:checked + .toggle-track{ background:var(--grad); }
+.toggle-thumb{ position:absolute;top:3px;left:3px;width:16px;height:16px;
+               background:white;border-radius:50%;transition:.3s; }
+.toggle-sw input:checked ~ .toggle-thumb{ left:21px; }
+.tmpls-pres-grid{ display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px; }
+.tmpl-pres-item{ aspect-ratio:16/9;border-radius:4px;cursor:pointer;
+                 border:2px solid transparent;overflow:hidden;position:relative;
+                 transition:border-color .2s; }
+.tmpl-pres-item:hover{ border-color:rgba(255,255,255,.3); }
+.tmpl-pres-item.selected{ border-color:var(--gold); }
+.tmpl-pres-item img,.tmpl-pres-item video{ width:100%;height:100%;object-fit:cover; }
+.tmpl-pres-empty{ aspect-ratio:16/9;border-radius:4px;border:2px dashed rgba(255,255,255,.15);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:9px;color:var(--soft);text-align:center;padding:6px; }
+.dur-slider{ width:100%;accent-color:var(--gold);margin:8px 0; }
+.dur-value{ font-size:13px;font-weight:700;color:var(--gold);text-align:center; }
+.pres-upload-area{ border:2px dashed rgba(255,255,255,.15);border-radius:4px;
+                   padding:16px;text-align:center;cursor:pointer;transition:border-color .2s; }
+.pres-upload-area:hover{ border-color:var(--gold); }
+.pres-upload-preview{ width:100%;height:80px;object-fit:cover;border-radius:4px;margin-top:8px; }
+
 /* ── ADMIN CONFIG PANEL ──────────────────────────────────── */
 #admin-config{ background:var(--bg); }
 .admin-tabs{ display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px; }
@@ -882,6 +917,93 @@ a{color:var(--gold);text-decoration:none;}
         <div style="font-size:11px;color:var(--mid);line-height:1.8;" id="info-ev-desc"></div>
         <div style="font-size:11px;color:var(--soft);margin-top:7px;" id="info-ev-place"></div>
       </div>
+
+      <!-- PRESENTACIÓN EN VIVO CONFIG -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.1em;
+                    text-transform:uppercase;margin-bottom:10px;">🎬 Presentación en vivo</div>
+
+        <!-- Toggle fondo -->
+        <div class="pres-section">
+          <div class="pres-section-title">🖼 Fondo para fotos verticales</div>
+          <div class="pres-section-desc">Cuando una foto es vertical, se muestra sobre este fondo en lugar de barras negras.</div>
+          <div class="pres-toggle">
+            <span class="pres-toggle-label">Activar fondo en la presentación</span>
+            <label class="toggle-sw">
+              <input type="checkbox" id="pres-bg-enabled" onchange="guardarConfigPres()">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+
+          <!-- Upload custom background -->
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;color:var(--soft);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;">Tu foto de fondo personalizada</div>
+            <div class="pres-upload-area" onclick="el('pres-bg-upload').click()">
+              <div id="pres-bg-preview-wrap">
+                <div style="font-size:22px;margin-bottom:4px;">🖼</div>
+                <div style="font-size:11px;color:var(--soft);">Tocá para subir tu foto de fondo</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:2px;">JPG o PNG · Recomendado 1920×1080</div>
+              </div>
+            </div>
+            <input type="file" id="pres-bg-upload" accept="image/*" style="display:none;" onchange="subirFondoPersonalizado(event)">
+          </div>
+
+          <!-- Templates grid -->
+          <div style="font-size:10px;color:var(--soft);margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase;">O elegí una plantilla</div>
+          <div class="tmpls-pres-grid" id="pres-tmpls-grid">
+            <!-- Loaded dynamically -->
+            <div class="tmpl-pres-empty">Sin plantilla<br>(fondo negro)</div>
+          </div>
+        </div>
+
+        <!-- Tiempo exposición -->
+        <div class="pres-section">
+          <div class="pres-section-title">⏱ Tiempo por foto</div>
+          <div class="pres-section-desc">Cuántos segundos se muestra cada foto antes de pasar a la siguiente.</div>
+          <div class="dur-value"><span id="dur-display">5</span> segundos</div>
+          <input type="range" class="dur-slider" id="pres-duration" 
+            min="1" max="15" step="1" value="5"
+            oninput="el('dur-display').textContent=this.value;slideState.duration=this.value*1000;guardarConfigPres()">
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--soft);">
+            <span>1 seg</span><span>5 seg</span><span>10 seg</span><span>15 seg</span>
+          </div>
+        </div>
+
+        <!-- Texto invitación -->
+        <div class="pres-section">
+          <div class="pres-section-title">✨ Texto de invitación</div>
+          <div class="pres-section-desc">Aparece en la pantalla invitando a los presentes a sumarse.</div>
+          <div class="pres-toggle">
+            <span class="pres-toggle-label">Mostrar texto en la presentación</span>
+            <label class="toggle-sw">
+              <input type="checkbox" id="pres-invite-enabled" onchange="guardarConfigPres()">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="field">
+            <input type="text" id="pres-invite-text" class="field-input"
+              placeholder="✨ Escaneá el QR y sumá tu foto a la presentación"
+              oninput="guardarConfigPres()"
+              style="font-size:12px;">
+          </div>
+        </div>
+
+        <!-- Logo lateral -->
+        <div class="pres-section">
+          <div class="pres-section-title">🎨 Laterales de pantalla</div>
+          <div class="pres-section-desc">Muestra el logo de Melup y el nombre del evento deslizándose por los costados.</div>
+          <div class="pres-toggle">
+            <span class="pres-toggle-label">Mostrar laterales animados</span>
+            <label class="toggle-sw">
+              <input type="checkbox" id="pres-sides-enabled" onchange="guardarConfigPres()" checked>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+      </div>
       <div class="danger-zone">
         <h4>⚠ Zona de peligro</h4>
         <p>Eliminar el evento lo borra de la app permanentemente. Para liberar espacio en Cloudinary, borrá también la carpeta del evento en la Media Library.</p>
@@ -1461,6 +1583,7 @@ function abrirEvento(id){
   switchTab('qrs');
   goTo('event-detail');
   setTimeout(()=>{ if(typeof escucharUploadsInvitados==='function'&&sbUser) escucharUploadsInvitados(appState.currentId); },100);
+  setTimeout(()=>{ if(typeof cargarConfigPres==='function') cargarConfigPres(); },200);
 }
 
 // TABS
@@ -2523,6 +2646,13 @@ function mostrarSlide(){
   el('slide-author').textContent = m.author ? '📷 ' + m.author + (m.mesaNombre ? ' · ' + m.mesaNombre : '') : '';
   el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
   animarProgress();
+  // Apply presentation config
+  const _presEv = appState.events.find(e=>e.id===slideState.evId);
+  if(_presEv){
+    setTimeout(()=>aplicarFondoSlide(m, _presEv), 150);
+    actualizarTextoInvitacion(_presEv);
+    actualizarLaterales(_presEv);
+  }
 }
 
 function animarProgress(){
@@ -3539,6 +3669,306 @@ Las fotos aparecen automáticamente a medida que los invitados las suben. ✨`;
     </div>
   `;
   document.body.appendChild(modal);
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// PRESENTATION SETTINGS
+// ══════════════════════════════════════════════════════════════
+
+// ── SAVE/LOAD CONFIG ─────────────────────────────────────────
+function guardarConfigPres(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+  ev.presConfig = {
+    bgEnabled:   el('pres-bg-enabled')?.checked || false,
+    bgUrl:       ev.presConfig?.bgUrl || null,
+    tmplUrl:     ev.presConfig?.tmplUrl || null,
+    duration:    parseInt(el('pres-duration')?.value || 5),
+    inviteEnabled: el('pres-invite-enabled')?.checked || false,
+    inviteText:  el('pres-invite-text')?.value || '✨ Escaneá el QR y sumá tu foto a la presentación',
+    sidesEnabled: el('pres-sides-enabled')?.checked !== false,
+  };
+  slideState.duration = ev.presConfig.duration * 1000;
+  sbSaveEvent(ev);
+}
+
+function cargarConfigPres(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+  const cfg = ev.presConfig || {};
+
+  if(el('pres-bg-enabled'))   el('pres-bg-enabled').checked   = cfg.bgEnabled || false;
+  if(el('pres-duration'))     el('pres-duration').value        = cfg.duration || 5;
+  if(el('dur-display'))       el('dur-display').textContent    = cfg.duration || 5;
+  if(el('pres-invite-enabled')) el('pres-invite-enabled').checked = cfg.inviteEnabled || false;
+  if(el('pres-invite-text'))  el('pres-invite-text').value     = cfg.inviteText || '';
+  if(el('pres-sides-enabled')) el('pres-sides-enabled').checked = cfg.sidesEnabled !== false;
+  slideState.duration = (cfg.duration || 5) * 1000;
+
+  // Show custom bg preview
+  if(cfg.bgUrl){
+    el('pres-bg-preview-wrap').innerHTML = 
+      `<img src="${cfg.bgUrl}" class="pres-upload-preview"><div style="font-size:10px;color:var(--soft);margin-top:4px;text-align:center;">Tocá para cambiar</div>`;
+  }
+
+  // Load templates grid
+  cargarPlantillasAdmin();
+
+  // Highlight selected template
+  setTimeout(()=>{
+    document.querySelectorAll('.tmpl-pres-item').forEach(item=>{
+      item.classList.toggle('selected', item.dataset.url === cfg.tmplUrl);
+    });
+    // Highlight "sin plantilla" if no template selected and no custom bg
+    const noTmpl = document.querySelector('.tmpl-pres-item[data-url="none"]');
+    if(noTmpl && !cfg.tmplUrl && !cfg.bgUrl) noTmpl.classList.add('selected');
+  }, 300);
+}
+
+// ── UPLOAD CUSTOM BACKGROUND ─────────────────────────────────
+async function subirFondoPersonalizado(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+
+  toast('⏳ Subiendo fondo...');
+
+  // Upload to Cloudinary
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', UPLOAD_PRESET);
+  fd.append('folder', ev.name + '/fondos');
+
+  try{
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:fd});
+    const data = await res.json();
+    if(data.secure_url){
+      if(!ev.presConfig) ev.presConfig = {};
+      ev.presConfig.bgUrl = data.secure_url;
+      ev.presConfig.tmplUrl = null; // clear template selection
+      await sbSaveEvent(ev);
+      el('pres-bg-preview-wrap').innerHTML = 
+        `<img src="${data.secure_url}" class="pres-upload-preview"><div style="font-size:10px;color:var(--soft);margin-top:4px;text-align:center;">Tocá para cambiar</div>`;
+      // Deselect all templates
+      document.querySelectorAll('.tmpl-pres-item').forEach(i=>i.classList.remove('selected'));
+      const noTmpl = document.querySelector('.tmpl-pres-item[data-url="none"]');
+      if(noTmpl) noTmpl.classList.remove('selected');
+      toast('✅ Fondo personalizado guardado');
+    }
+  }catch(e){
+    toast('Error al subir el fondo', true);
+  }
+  event.target.value='';
+}
+
+// ── LOAD ADMIN TEMPLATES ──────────────────────────────────────
+async function cargarPlantillasAdmin(){
+  const grid = el('pres-tmpls-grid');
+  if(!grid) return;
+
+  const { data } = await sb.from('melup_templates').select('*').order('orden');
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  const selectedUrl = ev?.presConfig?.tmplUrl || null;
+
+  let html = `<div class="tmpl-pres-item ${!selectedUrl?'selected':''}" data-url="none"
+    onclick="seleccionarPlantilla(null)"
+    style="background:#111;display:flex;align-items:center;justify-content:center;">
+    <div style="text-align:center;color:rgba(255,255,255,.3);font-size:9px;">Sin fondo</div>
+  </div>`;
+
+  (data||[]).forEach(t=>{
+    const isVideo = t.url.match(/\.(mp4|webm|mov)/i);
+    const isSel = t.url === selectedUrl;
+    if(isVideo){
+      html += `<div class="tmpl-pres-item ${isSel?'selected':''}" data-url="${t.url}" onclick="seleccionarPlantilla('${t.url}')">
+        <video src="${t.url}" muted autoplay loop playsinline style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></video>
+        ${t.nombre?`<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);font-size:8px;color:white;padding:3px;text-align:center;">${t.nombre}</div>`:''}
+      </div>`;
+    } else {
+      html += `<div class="tmpl-pres-item ${isSel?'selected':''}" data-url="${t.url}" onclick="seleccionarPlantilla('${t.url}')">
+        <img src="${t.url}" loading="lazy" style="pointer-events:none;">
+        ${t.nombre?`<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);font-size:8px;color:white;padding:3px;text-align:center;">${t.nombre}</div>`:''}
+      </div>`;
+    }
+  });
+
+  // If admin, show upload button
+  if(esAdmin()){
+    html += `<div class="tmpl-pres-empty" onclick="subirPlantillaAdmin()" style="cursor:pointer;border-color:rgba(245,200,66,.3);color:var(--gold);">
+      + Subir plantilla
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+async function seleccionarPlantilla(url){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+  if(!ev.presConfig) ev.presConfig = {};
+  ev.presConfig.tmplUrl = url;
+  if(url) ev.presConfig.bgUrl = null; // clear custom bg
+  await sbSaveEvent(ev);
+  document.querySelectorAll('.tmpl-pres-item').forEach(i=>{
+    i.classList.toggle('selected', (i.dataset.url === url) || (!url && i.dataset.url==='none'));
+  });
+  toast(url ? '✅ Plantilla seleccionada' : 'Fondo desactivado');
+}
+
+// ── ADMIN: UPLOAD TEMPLATE ────────────────────────────────────
+async function subirPlantillaAdmin(){
+  if(!esAdmin()){ toast('Solo el admin puede subir plantillas', true); return; }
+  const input = document.createElement('input');
+  input.type='file'; input.accept='image/*,video/mp4,video/webm';
+  input.onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const nombre = prompt('Nombre de la plantilla (opcional):') || '';
+    toast('⏳ Subiendo plantilla...');
+
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', UPLOAD_PRESET);
+    fd.append('folder', 'melup_templates');
+
+    const isVideo = file.type.startsWith('video/');
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${isVideo?'video':'image'}/upload`;
+
+    try{
+      const res = await fetch(endpoint, {method:'POST', body:fd});
+      const data = await res.json();
+      if(data.secure_url){
+        const { data: existing } = await sb.from('melup_templates').select('orden').order('orden',{ascending:false}).limit(1);
+        const orden = ((existing||[])[0]?.orden || 0) + 1;
+        await sb.from('melup_templates').insert({ url: data.secure_url, nombre, orden, tipo: isVideo?'video':'image' });
+        toast('✅ Plantilla subida');
+        cargarPlantillasAdmin();
+      }
+    }catch(e){ toast('Error al subir la plantilla', true); }
+  };
+  input.click();
+}
+
+// ── SLIDESHOW: APPLY BACKGROUND ──────────────────────────────
+function getBgUrl(ev){
+  const cfg = ev?.presConfig || {};
+  if(!cfg.bgEnabled) return null;
+  return cfg.bgUrl || cfg.tmplUrl || null;
+}
+
+function aplicarFondoSlide(mediaItem, ev){
+  const bgUrl = getBgUrl(ev);
+  const container = el('slide-media');
+  if(!bgUrl) return; // no background needed
+
+  // Check if photo is vertical
+  const img = container.querySelector('img.slide-img');
+  if(!img) return;
+
+  img.onload = ()=>{
+    const isVertical = img.naturalHeight > img.naturalWidth;
+    if(!isVertical) return; // horizontal photos fill screen normally
+
+    // Apply background behind vertical photo
+    const isVideo = bgUrl.match(/\.(mp4|webm|mov)/i);
+    container.style.position = 'relative';
+
+    // Remove existing bg
+    const existingBg = container.querySelector('.slide-bg');
+    if(existingBg) existingBg.remove();
+
+    const bg = document.createElement(isVideo ? 'video' : 'div');
+    bg.className = 'slide-bg';
+    bg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;';
+
+    if(isVideo){
+      bg.src = bgUrl; bg.autoplay=true; bg.muted=true; bg.loop=true; bg.playsInline=true;
+    } else {
+      bg.style.backgroundImage = `url(${bgUrl})`;
+      bg.style.backgroundSize = 'cover';
+      bg.style.backgroundPosition = 'center';
+      bg.style.filter = 'blur(20px) brightness(0.4) scale(1.1)';
+    }
+
+    container.insertBefore(bg, container.firstChild);
+    img.style.position = 'relative';
+    img.style.zIndex = '1';
+  };
+}
+
+// ── SLIDESHOW: INVITE TEXT ────────────────────────────────────
+function actualizarTextoInvitacion(ev){
+  let ticker = document.getElementById('slide-invite-ticker');
+  const cfg = ev?.presConfig || {};
+
+  if(!cfg.inviteEnabled){
+    if(ticker) ticker.style.display='none';
+    return;
+  }
+
+  if(!ticker){
+    ticker = document.createElement('div');
+    ticker.id = 'slide-invite-ticker';
+    ticker.style.cssText = `position:absolute;bottom:56px;left:0;right:0;text-align:center;
+      z-index:580;pointer-events:none;`;
+    el('slideshow-screen').appendChild(ticker);
+  }
+
+  ticker.style.display = 'block';
+  ticker.innerHTML = `<div style="display:inline-block;background:rgba(0,0,0,.55);
+    backdrop-filter:blur(8px);border:1px solid rgba(245,200,66,.4);
+    color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:clamp(13px,2vw,20px);
+    font-weight:300;letter-spacing:.08em;padding:8px 24px;border-radius:20px;
+    animation:fadeInOut 4s ease-in-out infinite;">
+    ${cfg.inviteText || '✨ Escaneá el QR y sumá tu foto a la presentación'}
+  </div>`;
+}
+
+// ── SLIDESHOW: SIDE PANELS ────────────────────────────────────
+function actualizarLaterales(ev){
+  ['slide-side-left','slide-side-right'].forEach(id=>{
+    const existing = document.getElementById(id);
+    if(existing) existing.remove();
+  });
+
+  const cfg = ev?.presConfig || {};
+  if(!cfg.sidesEnabled) return;
+
+  const screen = el('slideshow-screen');
+
+  ['left','right'].forEach(side=>{
+    const panel = document.createElement('div');
+    panel.id = 'slide-side-'+side;
+    panel.style.cssText = `position:absolute;${side}:0;top:0;bottom:0;width:44px;
+      z-index:570;display:flex;align-items:center;justify-content:center;
+      pointer-events:none;overflow:hidden;`;
+
+    panel.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;
+        animation:slideDown 8s linear infinite;transform:rotate(${side==='left'?'-90deg':'90deg'});">
+        <img src="${LOGO_B64}" style="width:28px;height:28px;border-radius:6px;flex-shrink:0;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:11px;font-weight:300;
+          color:rgba(255,255,255,.4);letter-spacing:.12em;white-space:nowrap;">
+          ${ev.name}
+        </span>
+        <span style="font-size:9px;color:rgba(255,255,255,.2);letter-spacing:.1em;">MELUP</span>
+      </div>`;
+    screen.appendChild(panel);
+  });
+}
+
+// Add required CSS animations
+if(!document.getElementById('pres-extra-css')){
+  const style = document.createElement('style');
+  style.id = 'pres-extra-css';
+  style.textContent = `
+    @keyframes fadeInOut{ 0%,100%{opacity:.4} 50%{opacity:1} }
+    @keyframes slideDown{ 0%{transform:translateY(-60px) rotate(var(--rot,-90deg))} 100%{transform:translateY(60px) rotate(var(--rot,-90deg))} }
+    .slide-bg{ transition:opacity .5s; }
+  `;
+  document.head.appendChild(style);
 }
 
 </script>

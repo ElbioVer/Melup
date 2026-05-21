@@ -2398,7 +2398,6 @@ function editarEvento(id){
   // Show existing cover in edit form
   const editCoverPrev = el('edit-cover-preview');
   _coverPosX = 50; _coverPosY = 50; // reset
-  setTimeout(initCoverPos, 100);
   if(ev.coverImage){
     const pos = ev.coverPosition || '50% 50%';
     const zoom = ev.coverZoom || 100;

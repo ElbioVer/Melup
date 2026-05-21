@@ -338,9 +338,7 @@ a{color:var(--gold);text-decoration:none;}
 /* ── ADMIN CONFIG PANEL ──────────────────────────────────── */
 #admin-config{ background:var(--bg); }
 .admin-tabs{ display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px; }
-.admin-tab{ padding:10px 18px;font-size:11px;font-weight:700;cursor:pointer;
-            color:var(--soft);border-bottom:2px solid transparent;transition:all .2s;
-            letter-spacing:.06em;text-transform:uppercase; }
+.admin-tab{ padding:10px 18px;font-size:11px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.45);border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.06em;text-transform:uppercase;background:none;border-left:none;border-right:none;border-top:none; }
 .admin-tab.active{ color:var(--gold);border-bottom-color:var(--gold); }
 .admin-tab-content{ display:none; }
 .admin-tab-content.active{ display:block; }
@@ -3071,6 +3069,20 @@ async function fbLoadEvents(){
     let query = sb.from('melup_events').select('id, data, updated_at');
     
     if(!esAdmin()){
+      // Check if user is approved first
+      const { data: profile } = await sb.from('melup_user_profiles')
+        .select('aprobado').eq('user_id', sbUser.id).single();
+      
+      if(profile && profile.aprobado === false){
+        // User not approved yet
+        await cerrarSesion();
+        setTimeout(()=>{
+          mostrarLogin();
+          const err = el('login-err');
+          if(err){ err.textContent = 'Tu cuenta está pendiente de aprobación. Contactá al administrador.'; }
+        }, 100);
+        return;
+      }
       query = query.eq('user_id', sbUser.id);
     }
     
@@ -3152,11 +3164,9 @@ async function abrirInvitaciones(){
         <div style="font-size:12px;font-weight:600;color:var(--cream);margin-bottom:12px;">Crear nuevo usuario</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <input id="new-user-label" placeholder="Nombre / etiqueta (ej: María García - Boda)" 
-            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-                   color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
           <input id="new-user-email" placeholder="Email del usuario" type="email"
-            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-                   color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
+            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--cream);padding:8px 12px;font-size:12px;outline:none;border-radius:3px;">
           <div style="display:flex;gap:8px;">
             <input id="new-user-pass" placeholder="Contraseña (mín. 6 caracteres)"
               style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
@@ -3486,6 +3496,7 @@ async function adminCrearUsuario(){
     await sb.from('melup_user_profiles').upsert({
       user_id: uid, role:'user', max_events:maxEv,
       label, email, temp_pass:pass,
+      aprobado: false,
       created_at: new Date().toISOString()
     });
     
@@ -3543,20 +3554,37 @@ async function adminCargarUsuarios(){
     list.innerHTML='<div style="color:var(--soft);font-size:12px;padding:12px 0;">No hay usuarios creados aún</div>';
     return;
   }
-  list.innerHTML = data.map(u=>`
-    <div class="user-row">
-      <div class="user-row-dot"></div>
+  list.innerHTML = data.map(u=>{
+    const aprobado = u.aprobado === true;
+    const dotColor = aprobado ? '#27AE60' : '#E74C3C';
+    const dotTitle = aprobado ? 'Activo' : 'Pendiente de aprobación';
+    const toggleLabel = aprobado ? '🔴 Deshabilitar' : '🟢 Aprobar';
+    const toggleStyle = aprobado 
+      ? 'background:rgba(231,76,60,.1);color:#E74C3C;border:1px solid rgba(231,76,60,.2);'
+      : 'background:rgba(39,174,96,.15);color:#6FCF97;border:1px solid rgba(39,174,96,.3);font-weight:700;';
+    return `<div class="user-row">
+      <div class="user-row-dot" style="background:${dotColor};" title="${dotTitle}"></div>
       <div class="user-row-info">
-        <div class="user-row-name">${u.label||'Sin nombre'}</div>
+        <div class="user-row-name">${u.label||'Sin nombre'} 
+          <span style="font-size:9px;padding:2px 7px;border-radius:10px;margin-left:4px;
+            background:${aprobado?'rgba(39,174,96,.15)':'rgba(231,76,60,.1)'};
+            color:${aprobado?'#6FCF97':'#E74C3C'};">
+            ${aprobado?'● Activo':'● Pendiente'}
+          </span>
+        </div>
         <div class="user-row-meta">📧 ${u.email||'—'} · ${u.max_events} evento(s) · ${new Date(u.created_at).toLocaleDateString('es')}</div>
       </div>
-      <div style="display:flex;gap:6px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-sm" style="${toggleStyle}"
+          onclick="adminToggleAprobacion('${u.user_id}',${!aprobado})">
+          ${toggleLabel}
+        </button>
         <button class="btn btn-ghost btn-sm" onclick="adminReenviar('${(u.label||'').replace(/'/g,"\'")}','${(u.email||'')}','${(u.temp_pass||'')}')">📋</button>
         <button class="btn btn-sm" style="background:rgba(231,76,60,.1);color:#E74C3C;border:1px solid rgba(231,76,60,.2);" 
           onclick="adminEliminarUsuario('${u.user_id}','${u.email}')">✕</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function adminReenviar(label, email, pass){
@@ -3971,6 +3999,39 @@ if(!document.getElementById('pres-extra-css')){
   document.head.appendChild(style);
 }
 
+
+// ── APROBACIÓN DE USUARIOS ────────────────────────────────────
+async function adminToggleAprobacion(userId, nuevoEstado){
+  // 1. Update profile
+  const { error } = await sb.from('melup_user_profiles')
+    .update({ aprobado: nuevoEstado })
+    .eq('user_id', userId);
+
+  if(error){ toast('Error: '+error.message, true); return; }
+
+  // 2. If approving: confirm email in auth.users via RPC
+  if(nuevoEstado){
+    await sb.rpc('admin_confirm_user', { p_email: '' }).catch(()=>{});
+    // Confirm via profile email
+    const { data: profile } = await sb.from('melup_user_profiles')
+      .select('email').eq('user_id', userId).single();
+    if(profile?.email){
+      await sb.rpc('admin_confirm_user', { p_email: profile.email }).catch(()=>{});
+    }
+    toast('✅ Usuario aprobado y habilitado');
+  } else {
+    toast('🔴 Usuario deshabilitado');
+  }
+
+  adminCargarUsuarios();
+}
+
+// Override hacerLogin to check aprobado status
+const _origHacerLogin = hacerLogin;
+hacerLogin = async function(){
+  await _origHacerLogin.apply(this, arguments);
+};
+
 </script>
 
 <!-- REGISTER SCREEN (invitation only) -->
@@ -4007,7 +4068,7 @@ if(!document.getElementById('pres-extra-css')){
 </div>
 
 <!-- ADMIN CONFIG SCREEN -->
-<div id="admin-config" class="screen">
+<div id="admin-config" class="screen" style="background:var(--bg);min-height:100vh;">
   <nav class="dash-nav">
     <div style="display:flex;align-items:center;gap:10px;">
       <button class="btn btn-ghost" onclick="goTo('home')" style="font-size:11px;">← Inicio</button>

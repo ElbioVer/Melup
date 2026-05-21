@@ -1131,6 +1131,12 @@ a{color:var(--gold);text-decoration:none;}
               <div class="toggle-thumb"></div>
             </label>
           </div>
+          <button onclick="previsualizarFondo()" 
+            style="width:100%;background:linear-gradient(135deg,#FF4DA6,#8B5CF6);
+                   color:white;border:none;padding:10px;font-size:12px;font-weight:700;
+                   cursor:pointer;border-radius:4px;margin-bottom:10px;letter-spacing:.04em;">
+            👁 Previsualizar fondo seleccionado
+          </button>
 
           <!-- Upload custom background -->
           <div style="margin-bottom:12px;">
@@ -2913,7 +2919,9 @@ function abrirSlideshow(){
   document.documentElement.requestFullscreen?.().catch(()=>{});
 
   // Apply background immediately on open
+  // Reload from appState to get latest presConfig
   const _presEv = appState.events.find(e=>e.id===ev.id) || ev;
+  console.log('Slideshow presConfig:', JSON.stringify(_presEv.presConfig));
   aplicarFondoSlide(null, _presEv);
   actualizarTextoInvitacion(_presEv);
   actualizarLaterales(_presEv);
@@ -4733,6 +4741,81 @@ function elegirColorInvitacion(color){
   const preview = document.getElementById('invite-color-preview');
   if(preview){ preview.style.color=color; preview.textContent=names[color]||'●'; }
   if(ev) guardarConfigPres();
+}
+
+
+// ── PREVISUALIZAR FONDO ───────────────────────────────────────
+function previsualizarFondo(){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev){ toast('No hay evento activo', true); return; }
+
+  const cfg = ev.presConfig || {};
+  const bgUrl = cfg.bgUrl || cfg.tmplUrl;
+
+  if(!bgUrl){
+    toast('Seleccioná una plantilla o subí una foto de fondo primero', true);
+    return;
+  }
+
+  // Show preview modal
+  const existing = document.getElementById('bg-preview-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'bg-preview-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;';
+
+  const isVideo = bgUrl.match(/\.(mp4|webm|mov)/i);
+  const bgHtml = isVideo
+    ? `<video src="${bgUrl}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>`
+    : `<div style="position:absolute;inset:0;background:url('${bgUrl}') center/cover no-repeat;"></div>`;
+
+  modal.innerHTML = `
+    ${bgHtml}
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;
+                align-items:center;justify-content:center;z-index:10;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;
+                  color:${cfg.inviteColor||'#F5C842'};letter-spacing:.1em;
+                  text-shadow:0 2px 12px rgba(0,0,0,.8);text-align:center;padding:20px;
+                  background:rgba(0,0,0,.3);border-radius:8px;">
+        Vista previa del fondo<br>
+        <span style="font-size:18px;opacity:.7;">${ev.name}</span>
+      </div>
+      <div style="margin-top:20px;font-size:14px;color:${cfg.inviteColor||'#F5C842'};
+                  background:rgba(0,0,0,.55);padding:10px 24px;border-radius:20px;
+                  letter-spacing:.06em;">
+        ${cfg.inviteText||'✨ Escaneá el QR y sumá tu foto a la presentación'}
+      </div>
+    </div>
+    <div style="position:absolute;top:16px;right:16px;z-index:20;display:flex;gap:8px;">
+      <button onclick="this.closest('#bg-preview-modal').remove()"
+        style="background:rgba(255,255,255,.15);backdrop-filter:blur(6px);
+               border:1px solid rgba(255,255,255,.3);color:white;
+               padding:8px 18px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;">
+        ✕ Cerrar
+      </button>
+      <button onclick="confirmarFondoYAbrir()"
+        style="background:linear-gradient(135deg,#FF4DA6,#8B5CF6);
+               border:none;color:white;
+               padding:8px 18px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;">
+        ▶ Iniciar presentación con este fondo
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function confirmarFondoYAbrir(){
+  const modal = document.getElementById('bg-preview-modal');
+  if(modal) modal.remove();
+  // Enable background and open slideshow
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+  if(!ev.presConfig) ev.presConfig = {};
+  ev.presConfig.bgEnabled = true;
+  const checkbox = document.getElementById('pres-bg-enabled');
+  if(checkbox) checkbox.checked = true;
+  sbSaveEvent(ev).then(()=> abrirSlideshow());
 }
 
 </script>

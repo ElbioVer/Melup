@@ -571,8 +571,8 @@ a{color:var(--gold);text-decoration:none;}
 }
 .slide-btn:hover{background:rgba(255,255,255,.25);}
 .slide-progress{
-  position:absolute;bottom:0;left:0;height:3px;
-  background:var(--gold);transition:width linear;
+  position:absolute;bottom:0;left:0;height:1px;
+  background:rgba(255,255,255,.15);transition:width linear;
 }
 .slide-empty{
   color:rgba(255,255,255,.4);font-size:16px;text-align:center;
@@ -2903,7 +2903,7 @@ function abrirSlideshow(){
 
   // Set event name and logo
   el('slide-event-name').textContent = ev.name;
-  el('slide-logo').src = LOGO_B64;
+  el('slide-logo').src = LOGO_SLIDE_B64;
 
   // Update link
   window._showURL = BASE_URL + '#show=' + ev.id;
@@ -2911,6 +2911,12 @@ function abrirSlideshow(){
   // Show screen
   el('slideshow-screen').classList.add('active');
   document.documentElement.requestFullscreen?.().catch(()=>{});
+
+  // Apply background immediately on open
+  const _presEv = appState.events.find(e=>e.id===ev.id) || ev;
+  aplicarFondoSlide(null, _presEv);
+  actualizarTextoInvitacion(_presEv);
+  actualizarLaterales(_presEv);
 
   mostrarSlide();
   iniciarAutoplay();
@@ -2959,13 +2965,9 @@ function mostrarSlide(){
   el('slide-author').textContent = m.author ? '📷 ' + m.author + (m.mesaNombre ? ' · ' + m.mesaNombre : '') : '';
   el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
   animarProgress();
-  // Apply presentation config
+  // Reapply invite text (may change)
   const _presEv = appState.events.find(e=>e.id===slideState.evId);
-  if(_presEv){
-    setTimeout(()=>aplicarFondoSlide(m, _presEv), 150);
-    actualizarTextoInvitacion(_presEv);
-    actualizarLaterales(_presEv);
-  }
+  if(_presEv) actualizarTextoInvitacion(_presEv);
 }
 
 function animarProgress(){
@@ -3309,7 +3311,7 @@ async function agregarURLManual(){
       <div class="slide-event-name" id="slide-event-name"></div>
       <div class="slide-author" id="slide-author"></div>
     </div>
-    <img class="slide-logo" id="slide-logo" src="" alt="Melup">
+    <img class="slide-logo" id="slide-logo" src="" alt="Melup" style="display:none;">
   </div>
   <div class="slide-progress" style="z-index:560;" id="slide-progress"></div>
 </div>
@@ -4222,6 +4224,7 @@ async function subirPlantillaAdmin(){
 // ── SLIDESHOW: APPLY BACKGROUND ──────────────────────────────
 function getBgUrl(ev){
   const cfg = ev?.presConfig || {};
+  console.log('getBgUrl - bgEnabled:', cfg.bgEnabled, 'bgUrl:', cfg.bgUrl, 'tmplUrl:', cfg.tmplUrl);
   if(!cfg.bgEnabled) return null;
   return cfg.bgUrl || cfg.tmplUrl || null;
 }
@@ -4301,7 +4304,15 @@ function actualizarLaterales(ev){
   if(_logoFloatInterval){ clearInterval(_logoFloatInterval); _logoFloatInterval=null; }
 
   const cfg = ev?.presConfig || {};
-  if(!cfg.sidesEnabled) return;
+  const fixedLogo = el('slide-logo');
+
+  if(!cfg.sidesEnabled){
+    // Show fixed logo in corner when dynamic is off
+    if(fixedLogo){ fixedLogo.src = LOGO_SLIDE_B64; fixedLogo.style.display='block'; }
+    return;
+  }
+  // Hide fixed logo when dynamic logos are on
+  if(fixedLogo) fixedLogo.style.display='none';
 
   // Launch floating logos at random intervals
   lanzarLogoFlotante(ev.name);

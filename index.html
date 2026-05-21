@@ -654,9 +654,9 @@ a{color:var(--gold);text-decoration:none;}
 .page-h{
   font-family:'Cormorant Garamond',serif;
   font-size:28px;font-weight:300;
-  color:var(--cream);letter-spacing:.02em;
+  color:#F5F0E8 !important;letter-spacing:.02em;
 }
-.page-h em{ color:var(--gold);font-style:italic; }
+.page-h em{ color:#F5C842 !important;font-style:italic; }
 .page-sub{ font-size:11px;color:var(--soft);margin-bottom:20px; }
 
 /* UNIFIED BUTTONS */
@@ -816,16 +816,15 @@ a{color:var(--gold);text-decoration:none;}
   <nav class="app-nav" style="position:absolute;top:0;left:0;right:0;background:transparent;border-bottom:none;z-index:10;padding:16px 28px;justify-content:flex-end;">
     <div class="nav-btns">
       <button id="btn-gestionar-usuarios" onclick="abrirInvitaciones()" 
-        style="display:none;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);
-               color:#A78BFA;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;
-               border-radius:20px;">⚙️ Admin</button>
+        style="display:none;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.5);
+               color:#C4B5FD;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;
+               border-radius:20px;letter-spacing:.04em;">⚙️ Admin</button>
       <button id="pwa-install-btn" onclick="instalarPWA()" 
         style="display:none;align-items:center;gap:5px;background:rgba(255,77,166,.15);
         border:1px solid rgba(255,77,166,.3);color:rgba(255,255,255,.8);
         padding:6px 12px;font-size:11px;cursor:pointer;border-radius:20px;">
         ⬇ Instalar app
       </button>
-      <button class="btn btn-gold" onclick="irAlAdmin()">Mis eventos →</button>
     </div>
   </nav>
   <div class="home-hero">
@@ -1718,7 +1717,14 @@ function abrirEvento(id){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const bannerEl = el('d-banner-bg');
   if(ev.coverImage){
-    bannerEl.style.background = `url('${ev.coverImage}') ${ev.coverPosition||'center'}/${ev.coverZoom&&ev.coverZoom!==100?(ev.coverZoom+'%'):'cover'} no-repeat`;
+    const pos = ev.coverPosition || '50% 50%';
+    const zoom = ev.coverZoom || 100;
+    bannerEl.style.backgroundImage = `url('${ev.coverImage}')`;
+    bannerEl.style.backgroundPosition = pos;
+    bannerEl.style.backgroundRepeat = 'no-repeat';
+    bannerEl.style.backgroundSize = 'cover';
+    bannerEl.style.transform = zoom !== 100 ? `scale(${zoom/100})` : '';
+    bannerEl.style.transformOrigin = pos;
     bannerEl.textContent = '';
   } else {
     bannerEl.style.background = t.bg;
@@ -2118,7 +2124,14 @@ function abrirVistaInvitado(mesaId,evId){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');
   if(ev.coverImage){
-    gi.style.background=`url('${ev.coverImage}') ${ev.coverPosition||'center'}/${ev.coverZoom&&ev.coverZoom!==100?(ev.coverZoom+'%'):'cover'} no-repeat`;
+    const _pos = ev.coverPosition||'50% 50%';
+    const _zoom = ev.coverZoom||100;
+    gi.style.backgroundImage=`url('${ev.coverImage}')`;
+    gi.style.backgroundPosition=_pos;
+    gi.style.backgroundSize='cover';
+    gi.style.backgroundRepeat='no-repeat';
+    if(_zoom!==100){ gi.style.transform=`scale(${_zoom/100})`; gi.style.transformOrigin=_pos; }
+    else { gi.style.transform=''; }
     gi.style.backgroundSize='cover';
     gi.textContent='';
   } else {

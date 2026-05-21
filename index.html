@@ -4056,11 +4056,11 @@ async function subirFondoPersonalizado(event){
   // Upload to Cloudinary
   const fd = new FormData();
   fd.append('file', file);
-  fd.append('upload_preset', UPLOAD_PRESET);
+  fd.append('upload_preset', CLD_PRESET);
   fd.append('folder', ev.name + '/fondos');
 
   try{
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:fd});
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, {method:'POST', body:fd});
     const data = await res.json();
     if(data.secure_url){
       if(!ev.presConfig) ev.presConfig = {};
@@ -4148,11 +4148,11 @@ async function subirPlantillaAdmin(){
 
     const fd = new FormData();
     fd.append('file', file);
-    fd.append('upload_preset', UPLOAD_PRESET);
+    fd.append('upload_preset', CLD_PRESET);
     fd.append('folder', 'melup_templates');
 
     const isVideo = file.type.startsWith('video/');
-    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${isVideo?'video':'image'}/upload`;
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLD_CLOUD}/${isVideo?'video':'image'}/upload`;
 
     try{
       const res = await fetch(endpoint, {method:'POST', body:fd});
@@ -4558,11 +4558,11 @@ async function aplicarRecorte(){
     const blob = await (await fetch(croppedDataUrl)).blob();
     const fd = new FormData();
     fd.append('file', blob, 'cover-crop.jpg');
-    fd.append('upload_preset', UPLOAD_PRESET);
+    fd.append('upload_preset', CLD_PRESET);
     fd.append('folder', ev.name + '/portada');
 
     try{
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:fd});
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, {method:'POST', body:fd});
       const data = await res.json();
       if(data.secure_url){
         // Save as coverImage

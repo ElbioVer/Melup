@@ -2843,9 +2843,9 @@ async function moderarMedia(idx, aprobada){
   if(!ev||!ev.media[idx]) return;
   ev.media[idx].aprobada = aprobada;
   renderAlbum();
-  // Save to Supabase
+  // Save to Supabase - realtime will update slideshow automatically
   await sbSaveEvent(ev);
-  toast(aprobada ? '✅ Foto aprobada para la presentación' : '🚫 Foto rechazada');
+  toast(aprobada ? '✅ Foto aprobada — aparecerá en la presentación' : '🚫 Foto rechazada');
 }
 
 // ── SLIDESHOW STATE ───────────────────────────────────────────
@@ -3007,26 +3007,49 @@ function toggleSlidePause(){
 // Listen for newly approved photos in real time
 function escucharNuevasAprobadas(){
   if(slideState.realtimeSub) sb.removeChannel(slideState.realtimeSub);
-  if(!sbUser) return;
+
+  // Works both for admin (sbUser exists) and for public show URL
   slideState.realtimeSub = sb
     .channel('slideshow-'+slideState.evId)
     .on('postgres_changes',
-      {event:'UPDATE', schema:'public', table:'melup_events', filter:'id=eq.'+slideState.evId},
+      {event:'UPDATE', schema:'public', table:'melup_events'},
       payload=>{
         const newEv = payload.new?.data;
-        if(!newEv) return;
+        if(!newEv || newEv.id !== slideState.evId) return;
+
         // Update local state
         const idx = appState.events.findIndex(e=>e.id===newEv.id);
         if(idx>=0) appState.events[idx]=newEv;
-        // Refresh slideshow media
+
+        // Get new approved media
         const nuevasAprobadas = getMediaAprobada(newEv);
-        if(nuevasAprobadas.length !== slideState.media.length){
-          slideState.media = nuevasAprobadas;
-          el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
-          toast('📸 Nueva foto aprobada en la presentación');
+        const prevCount = slideState.media.length;
+
+        if(nuevasAprobadas.length === prevCount) return; // no change
+
+        // Find truly new photos (not already in slideshow)
+        const prevIds = new Set(slideState.media.map(m=>m.id));
+        const agregadas = nuevasAprobadas.filter(m=>!prevIds.has(m.id));
+
+        // Update media list keeping current position
+        slideState.media = nuevasAprobadas;
+
+        // Keep current index valid
+        if(slideState.idx >= slideState.media.length){
+          slideState.idx = slideState.media.length - 1;
+        }
+
+        // Update counter
+        el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
+
+        if(agregadas.length > 0){
+          // Show a brief notification without interrupting current slide
+          toast('📸 ' + agregadas.length + ' foto(s) nueva(s) en la presentación');
         }
       }
-    ).subscribe();
+    ).subscribe((status)=>{
+      console.log('Slideshow realtime:', status);
+    });
 }
 
 // ── URL SHOW MODE (#show=evId) ────────────────────────────────
@@ -3213,11 +3236,12 @@ async function eliminarSeleccionadas(){
 async function aprobarSeleccionadas(){
   const ev = appState.events.find(e=>e.id===appState.currentId);
   if(!ev || !window.albumSelected || !window.albumSelected.size) return;
+  const count = window.albumSelected.size;
   window.albumSelected.forEach(gi=>{ if(ev.media[gi]) ev.media[gi].aprobada=true; });
   window.albumSelected = new Set();
   await sbSaveEvent(ev);
   renderAlbum();
-  toast('✅ Fotos aprobadas para la presentación');
+  toast('✅ ' + count + ' foto(s) aprobadas — aparecerán en la presentación');
 }
 
 

@@ -772,6 +772,49 @@ a{color:var(--gold);text-decoration:none;}
   border-radius:12px;
 }
 
+
+/* ── IMAGE CROPPER ──────────────────────────────────────── */
+.cropper-wrap{
+  position:relative;width:100%;height:180px;
+  overflow:hidden;cursor:crosshair;
+  border-radius:6px;border:2px solid rgba(139,92,246,.4);
+  background:#111;user-select:none;
+}
+.cropper-img{
+  position:absolute;top:0;left:0;
+  transform-origin:0 0;pointer-events:none;
+}
+.cropper-overlay{
+  position:absolute;inset:0;pointer-events:none;
+  background:rgba(0,0,0,.5);
+}
+.cropper-box{
+  position:absolute;border:2px solid var(--gold);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55);
+  cursor:move;
+}
+.cropper-box::before,.cropper-box::after{
+  content:'';position:absolute;background:var(--gold);
+}
+.cropper-box::before{top:50%;left:0;right:0;height:1px;opacity:.4;}
+.cropper-box::after{left:50%;top:0;bottom:0;width:1px;opacity:.4;}
+.cropper-handle{
+  position:absolute;width:10px;height:10px;
+  background:var(--gold);border-radius:50%;
+  bottom:-5px;right:-5px;cursor:se-resize;
+}
+.cropper-ratio-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.cropper-ratio-btn{
+  padding:5px 12px;font-size:10px;font-weight:700;
+  border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);
+  transition:all .15s;letter-spacing:.04em;
+}
+.cropper-ratio-btn:hover,.cropper-ratio-btn.active{
+  background:rgba(245,200,66,.2);border-color:var(--gold);color:var(--gold);
+}
+.cropper-actions{display:flex;gap:8px;margin-top:10px;}
+
 </style>
 </head>
 <body>
@@ -2373,42 +2416,38 @@ function editarEvento(id){
     posControls.id = 'cover-pos-controls';
     posControls.style.cssText = 'margin-top:12px;';
     posControls.innerHTML = `
-      <div style="font-size:10px;color:#555;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;">
-        📐 Ajustar posición y zoom
+      <div style="font-size:10px;color:#555;margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;">
+        ✂️ Recortar imagen para el banner
       </div>
-      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-        <div>
-          <div style="font-size:9px;color:#888;margin-bottom:6px;text-align:center;">Mover imagen</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;width:140px;">
-            <div></div>
-            <button type="button" onclick="moverPortada(0,-3)" class="pos-btn">↑</button>
-            <div></div>
-            <button type="button" onclick="moverPortada(-3,0)" class="pos-btn">←</button>
-            <button type="button" onclick="centrarPortada()" class="pos-btn" title="Centrar">⊙</button>
-            <button type="button" onclick="moverPortada(3,0)" class="pos-btn">→</button>
-            <div></div>
-            <button type="button" onclick="moverPortada(0,3)" class="pos-btn">↓</button>
-            <div></div>
-          </div>
-        </div>
-        <div style="flex:1;min-width:140px;">
-          <div style="font-size:9px;color:#888;margin-bottom:6px;">Zoom</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span style="font-size:13px;">🔍</span>
-            <input type="range" class="zoom-slider" id="cover-zoom-slider"
-              min="50" max="200" step="5" value="${(ev.coverZoom||100)}"
-              oninput="cambiarZoomPortada(this.value)">
-            <span style="font-size:11px;color:#555;font-weight:700;" id="cover-zoom-val">${(ev.coverZoom||100)}%</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">
-            <button type="button" onclick="cambiarZoomPortada(50)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">50%</button>
-            <button type="button" onclick="cambiarZoomPortada(75)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">75%</button>
-            <button type="button" onclick="cambiarZoomPortada(100)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">100%</button>
-            <button type="button" onclick="cambiarZoomPortada(150)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">150%</button>
-          </div>
+      <div style="font-size:10px;color:#888;margin-bottom:6px;">Arrastrá el recuadro dorado para elegir qué parte mostrar</div>
+      <div class="cropper-wrap" id="cropper-wrap">
+        <img id="cropper-img" class="cropper-img" src="${ev.coverImage}" draggable="false">
+        <div class="cropper-box" id="cropper-box">
+          <div class="cropper-handle" id="cropper-handle"></div>
         </div>
       </div>
+      <div class="cropper-ratio-btns">
+        <span style="font-size:9px;color:#888;align-self:center;">Proporción:</span>
+        <button type="button" class="cropper-ratio-btn active" onclick="setCropRatio(4,1)">Banner (4:1)</button>
+        <button type="button" class="cropper-ratio-btn" onclick="setCropRatio(16,9)">16:9</button>
+        <button type="button" class="cropper-ratio-btn" onclick="setCropRatio(3,1)">3:1</button>
+        <button type="button" class="cropper-ratio-btn" onclick="setCropRatio(0,0)">Libre</button>
+      </div>
+      <div class="cropper-actions">
+        <button type="button" onclick="aplicarRecorte()" 
+          style="flex:1;background:#6C3F9E;color:white;border:none;padding:10px;
+                 font-size:12px;font-weight:700;cursor:pointer;border-radius:4px;">
+          ✓ Aplicar recorte
+        </button>
+        <button type="button" onclick="resetearRecorte()" 
+          style="background:rgba(255,255,255,.08);color:#888;border:1px solid rgba(255,255,255,.15);
+                 padding:10px 14px;font-size:12px;cursor:pointer;border-radius:4px;">
+          ↺ Original
+        </button>
+      </div>
+      <div id="crop-status" style="font-size:10px;color:#6FCF97;margin-top:6px;display:none;">✅ Recorte aplicado</div>
     `;
+    setTimeout(initCropper, 100);
     
     const coverArea = el('edit-cover-area');
     const existing = document.getElementById('cover-pos-controls');
@@ -4266,37 +4305,7 @@ async function adminToggleAprobacion(userId, nuevoEstado){
 // ── COVER IMAGE POSITION ──────────────────────────────────────
 let _coverPosX = 50, _coverPosY = 50; // percentage
 
-function initCoverPos(){
-  const ev = appState.events.find(e=>e.id===editingId);
-  if(!ev) return;
-  const pos = ev.coverPosition || '50% 50%';
-  const parts = pos.match(/(\d+)%\s*(\d+)%/);
-  if(parts){ _coverPosX = parseInt(parts[1]); _coverPosY = parseInt(parts[2]); }
-  else { _coverPosX = 50; _coverPosY = 50; }
-}
-
-function moverPortada(dx, dy){
-  const ev = appState.events.find(e=>e.id===editingId);
-  if(!ev) return;
-  _coverPosX = Math.max(0, Math.min(100, _coverPosX + dx));
-  _coverPosY = Math.max(0, Math.min(100, _coverPosY + dy));
-  const pos = `${_coverPosX}% ${_coverPosY}%`;
-  ev.coverPosition = pos;
-  const img = document.getElementById('edit-cover-img-preview');
-  if(img){
-    img.style.objectPosition = pos;
-    img.style.transformOrigin = pos;
-  }
-}
-
-function centrarPortada(){
-  _coverPosX = 50; _coverPosY = 50;
-  const ev = appState.events.find(e=>e.id===editingId);
-  if(ev){ ev.coverPosition = '50% 50%'; }
-  const img = document.getElementById('edit-cover-img-preview');
-  if(img) img.style.objectPosition = '50% 50%';
-}
-
+// function initCoverPos removed (replaced by cropper)
 
 function cambiarZoomPortada(zoom){
   zoom = parseInt(zoom);
@@ -4312,6 +4321,267 @@ function cambiarZoomPortada(zoom){
   const label = document.getElementById('cover-zoom-val');
   if(slider) slider.value = zoom;
   if(label) label.textContent = zoom + '%';
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// IMAGE CROPPER
+// ══════════════════════════════════════════════════════════════
+let cropState = {
+  ratio: [4, 1],       // width:height ratio
+  boxX: 0, boxY: 0,    // crop box position (pixels on display)
+  boxW: 0, boxH: 0,    // crop box size (pixels on display)
+  imgScale: 1,         // scale factor image→display
+  imgNatW: 0, imgNatH: 0, // natural image size
+  dragging: false,
+  resizing: false,
+  dragStartX: 0, dragStartY: 0,
+  origBoxX: 0, origBoxY: 0,
+};
+
+function initCropper(){
+  const wrap = document.getElementById('cropper-wrap');
+  const img  = document.getElementById('cropper-img');
+  const box  = document.getElementById('cropper-box');
+  const handle = document.getElementById('cropper-handle');
+  if(!wrap || !img || !box) return;
+
+  img.onload = ()=>{
+    const wW = wrap.clientWidth;
+    const wH = wrap.clientHeight;
+    cropState.imgNatW = img.naturalWidth;
+    cropState.imgNatH = img.naturalHeight;
+
+    // Scale image to fit wrap height
+    const scaleH = wH / img.naturalHeight;
+    const scaleW = wW / img.naturalWidth;
+    cropState.imgScale = Math.max(scaleH, scaleW);
+    const dispW = img.naturalWidth  * cropState.imgScale;
+    const dispH = img.naturalHeight * cropState.imgScale;
+    img.style.width  = dispW + 'px';
+    img.style.height = dispH + 'px';
+    img.style.left   = ((wW - dispW) / 2) + 'px';
+    img.style.top    = ((wH - dispH) / 2) + 'px';
+
+    // Init crop box
+    setCropRatio(...cropState.ratio);
+  };
+  if(img.complete) img.onload();
+
+  // Drag box
+  box.addEventListener('mousedown', e=>{
+    if(e.target === handle) return;
+    cropState.dragging = true;
+    cropState.dragStartX = e.clientX;
+    cropState.dragStartY = e.clientY;
+    cropState.origBoxX = cropState.boxX;
+    cropState.origBoxY = cropState.boxY;
+    e.preventDefault();
+  });
+
+  // Resize handle
+  handle.addEventListener('mousedown', e=>{
+    cropState.resizing = true;
+    cropState.dragStartX = e.clientX;
+    cropState.dragStartY = e.clientY;
+    e.preventDefault(); e.stopPropagation();
+  });
+
+  // Touch support
+  box.addEventListener('touchstart', e=>{
+    if(e.target === handle) return;
+    const t = e.touches[0];
+    cropState.dragging = true;
+    cropState.dragStartX = t.clientX;
+    cropState.dragStartY = t.clientY;
+    cropState.origBoxX = cropState.boxX;
+    cropState.origBoxY = cropState.boxY;
+  }, {passive:true});
+
+  handle.addEventListener('touchstart', e=>{
+    const t = e.touches[0];
+    cropState.resizing = true;
+    cropState.dragStartX = t.clientX;
+    cropState.dragStartY = t.clientY;
+    e.stopPropagation();
+  }, {passive:true});
+
+  document.addEventListener('mousemove', onCropMove);
+  document.addEventListener('mouseup',  onCropEnd);
+  document.addEventListener('touchmove', e=>onCropMove(e.touches[0]), {passive:true});
+  document.addEventListener('touchend',  onCropEnd, {passive:true});
+}
+
+function onCropMove(e){
+  if(!cropState.dragging && !cropState.resizing) return;
+  const wrap = document.getElementById('cropper-wrap');
+  const box  = document.getElementById('cropper-box');
+  if(!wrap || !box) return;
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  const dx = e.clientX - cropState.dragStartX;
+  const dy = e.clientY - cropState.dragStartY;
+
+  if(cropState.dragging){
+    cropState.boxX = Math.max(0, Math.min(wW - cropState.boxW, cropState.origBoxX + dx));
+    cropState.boxY = Math.max(0, Math.min(wH - cropState.boxH, cropState.origBoxY + dy));
+  }
+  if(cropState.resizing){
+    const [rW, rH] = cropState.ratio;
+    const minW = 40;
+    let newW = Math.max(minW, cropState.boxW + dx);
+    // Clamp to wrap
+    newW = Math.min(newW, wW - cropState.boxX);
+    let newH = rW && rH ? newW * (rH/rW) : Math.max(minW, cropState.boxH + dy);
+    newH = Math.min(newH, wH - cropState.boxY);
+    if(rW && rH) newW = newH * (rW/rH);
+    cropState.boxW = newW;
+    cropState.boxH = newH;
+    // Reset dragStart for continuous resize
+    cropState.dragStartX = e.clientX;
+    cropState.dragStartY = e.clientY;
+  }
+  updateCropBox();
+}
+
+function onCropEnd(){
+  cropState.dragging = false;
+  cropState.resizing = false;
+}
+
+function updateCropBox(){
+  const box = document.getElementById('cropper-box');
+  if(!box) return;
+  box.style.left   = cropState.boxX + 'px';
+  box.style.top    = cropState.boxY + 'px';
+  box.style.width  = cropState.boxW + 'px';
+  box.style.height = cropState.boxH + 'px';
+}
+
+function setCropRatio(w, h){
+  cropState.ratio = [w, h];
+  // Update buttons
+  document.querySelectorAll('.cropper-ratio-btn').forEach(btn=>{
+    btn.classList.toggle('active',
+      btn.textContent.includes(w&&h ? w+':'+h : 'Libre') ||
+      (w===4&&h===1&&btn.textContent.includes('Banner')) ||
+      (w===3&&h===1&&btn.textContent.includes('3:1'))
+    );
+  });
+  const wrap = document.getElementById('cropper-wrap');
+  if(!wrap) return;
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  // Set default box: full width, proper height
+  if(w && h){
+    cropState.boxW = wW * 0.9;
+    cropState.boxH = cropState.boxW * (h/w);
+    if(cropState.boxH > wH * 0.9){
+      cropState.boxH = wH * 0.9;
+      cropState.boxW = cropState.boxH * (w/h);
+    }
+  } else {
+    cropState.boxW = wW * 0.8;
+    cropState.boxH = wH * 0.8;
+  }
+  cropState.boxX = (wW - cropState.boxW) / 2;
+  cropState.boxY = (wH - cropState.boxH) / 2;
+  updateCropBox();
+}
+
+async function aplicarRecorte(){
+  const img = document.getElementById('cropper-img');
+  const wrap = document.getElementById('cropper-wrap');
+  if(!img || !wrap) return;
+
+  const status = document.getElementById('crop-status');
+  if(status){ status.textContent = '⏳ Procesando...'; status.style.display='block'; }
+
+  // Convert crop box coords to natural image coords
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  const dispImgW = parseFloat(img.style.width);
+  const dispImgH = parseFloat(img.style.height);
+  const imgLeft  = parseFloat(img.style.left) || 0;
+  const imgTop   = parseFloat(img.style.top)  || 0;
+
+  // Crop box relative to image display
+  const relX = (cropState.boxX - imgLeft) / dispImgW;
+  const relY = (cropState.boxY - imgTop)  / dispImgH;
+  const relW = cropState.boxW / dispImgW;
+  const relH = cropState.boxH / dispImgH;
+
+  // Natural coords
+  const natX = Math.max(0, relX * cropState.imgNatW);
+  const natY = Math.max(0, relY * cropState.imgNatH);
+  const natW = Math.min(cropState.imgNatW - natX, relW * cropState.imgNatW);
+  const natH = Math.min(cropState.imgNatH - natY, relH * cropState.imgNatH);
+
+  // Draw cropped image on canvas
+  const canvas = document.createElement('canvas');
+  // Output: always 1200x300 (4:1 banner ratio) for consistent display
+  canvas.width  = 1200;
+  canvas.height = Math.round(1200 * (cropState.boxH / cropState.boxW));
+  const ctx = canvas.getContext('2d');
+
+  // Load fresh image (avoid CORS issues with cached)
+  const tmpImg = new Image();
+  tmpImg.crossOrigin = 'anonymous';
+  tmpImg.onload = async ()=>{
+    ctx.drawImage(tmpImg, natX, natY, natW, natH, 0, 0, canvas.width, canvas.height);
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+    // Upload cropped image to Cloudinary
+    const ev = appState.events.find(e=>e.id===editingId);
+    if(!ev){ return; }
+
+    const blob = await (await fetch(croppedDataUrl)).blob();
+    const fd = new FormData();
+    fd.append('file', blob, 'cover-crop.jpg');
+    fd.append('upload_preset', UPLOAD_PRESET);
+    fd.append('folder', ev.name + '/portada');
+
+    try{
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {method:'POST', body:fd});
+      const data = await res.json();
+      if(data.secure_url){
+        // Save as coverImage
+        pendingEditCoverImage = data.secure_url;
+        ev.coverImage = data.secure_url;
+        ev.coverPosition = '50% 50%';
+        ev.coverZoom = 100;
+
+        // Update preview
+        const preview = document.getElementById('edit-cover-img-preview');
+        if(preview){ preview.src = data.secure_url; preview.style.objectPosition='center'; }
+
+        // Update banner immediately
+        const bannerEl = el('d-banner-bg');
+        if(bannerEl){
+          bannerEl.style.backgroundImage = `url('${data.secure_url}')`;
+          bannerEl.style.backgroundPosition = 'center';
+          bannerEl.style.backgroundSize = 'cover';
+        }
+
+        if(status){ status.textContent='✅ Recorte aplicado y guardado'; }
+        await sbSaveEvent(ev);
+        toast('✅ Imagen recortada y guardada');
+      }
+    }catch(e){
+      if(status){ status.textContent='❌ Error al guardar'; }
+      toast('Error al subir imagen recortada', true);
+    }
+  };
+  tmpImg.src = img.src;
+}
+
+function resetearRecorte(){
+  const ev = appState.events.find(e=>e.id===editingId);
+  if(!ev) return;
+  ev.coverPosition = '50% 50%';
+  ev.coverZoom = 100;
+  const preview = document.getElementById('edit-cover-img-preview');
+  if(preview){ preview.style.objectPosition='center'; preview.style.transform='scale(1)'; }
+  const status = document.getElementById('crop-status');
+  if(status){ status.textContent='↺ Vista original'; status.style.display='block'; }
+  setCropRatio(...cropState.ratio);
 }
 
 </script>

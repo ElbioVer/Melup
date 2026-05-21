@@ -155,9 +155,9 @@ a{color:var(--gold);text-decoration:none;}
 /* DASHBOARD */
 #dashboard{background:var(--ash);}
 .dash-body{flex:1;padding:32px;}
-.page-h{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;margin-bottom:5px;}
-.page-h em{font-style:italic;color:var(--gold);}
-.page-sub{color:var(--soft);font-size:12px;margin-bottom:28px;}
+.page-h{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;margin-bottom:5px;color:#F5F0E8;}
+.page-h em{font-style:italic;color:#F5C842;}
+.page-sub{color:rgba(255,255,255,.5);font-size:12px;margin-bottom:28px;}
 .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;}
 .ev-card{background:#F8F6F6;border:1px solid var(--warm2);overflow:hidden;transition:all .22s;position:relative;}
 .ev-card:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(26,23,18,.12);}
@@ -864,7 +864,7 @@ a{color:var(--gold);text-decoration:none;}
   <div class="dash-body">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;">
       <div>
-        <h1 class="page-h">Mis <em>eventos</em></h1>
+        <h1 class="page-h" style="color:#F5F0E8;">Mis <em>eventos</em></h1>
         <p class="page-sub">Panel de administrador — solo vos ves esta sección.</p>
       </div>
       <button onclick="goTo('create-event')" style="
@@ -1719,12 +1719,13 @@ function abrirEvento(id){
   if(ev.coverImage){
     const pos = ev.coverPosition || '50% 50%';
     const zoom = ev.coverZoom || 100;
+    // Convert zoom to background-size percentage
+    const bgSize = zoom <= 100 ? Math.max(30, zoom) + '%' : 'cover';
     bannerEl.style.backgroundImage = `url('${ev.coverImage}')`;
     bannerEl.style.backgroundPosition = pos;
     bannerEl.style.backgroundRepeat = 'no-repeat';
-    bannerEl.style.backgroundSize = 'cover';
-    bannerEl.style.transform = zoom !== 100 ? `scale(${zoom/100})` : '';
-    bannerEl.style.transformOrigin = pos;
+    bannerEl.style.backgroundSize = zoom === 100 ? 'cover' : (zoom < 100 ? `${zoom}%` : 'cover');
+    bannerEl.style.transform = '';
     bannerEl.textContent = '';
   } else {
     bannerEl.style.background = t.bg;

@@ -625,12 +625,148 @@ a{color:var(--gold);text-decoration:none;}
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.2} }
 
 .pos-btn{
-  background:#f0f0f0;border:1px solid #ddd;border-radius:4px;
-  padding:6px;font-size:14px;cursor:pointer;line-height:1;
-  transition:background .15s;color:#333;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;padding:8px 12px;
+  font-size:16px;cursor:pointer;line-height:1;
+  transition:all .15s;color:var(--cream);
+  min-width:40px;
 }
-.pos-btn:hover{background:#e0e0e0;}
-.pos-btn:active{background:#ccc;}
+.pos-btn:hover{background:rgba(245,200,66,.15);border-color:var(--gold);color:var(--gold);}
+.pos-btn:active{background:rgba(245,200,66,.25);}
+
+/* ══════════════════════════════════════════════════════
+   MELUP UNIFIED DESIGN SYSTEM
+   ══════════════════════════════════════════════════════ */
+
+/* NAV GLOBAL */
+.app-nav, .dash-nav{
+  background:rgba(13,8,32,.97) !important;
+  border-bottom:1px solid rgba(139,92,246,.2) !important;
+  backdrop-filter:blur(12px);
+}
+
+/* DASH BODY TYPOGRAPHY */
+.page-h{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:300;
+  color:var(--cream);letter-spacing:.02em;
+}
+.page-h em{ color:var(--gold);font-style:italic; }
+.page-sub{ font-size:11px;color:var(--soft);margin-bottom:20px; }
+
+/* UNIFIED BUTTONS */
+.btn{
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;letter-spacing:.04em;
+  border-radius:6px;transition:all .2s;
+}
+.btn-gold{
+  background:linear-gradient(135deg,#FF4DA6,#8B5CF6);
+  color:white;border:none;
+  box-shadow:0 2px 12px rgba(255,77,166,.25);
+}
+.btn-gold:hover{ opacity:.88;transform:translateY(-1px); }
+.btn-ghost{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.7);
+}
+.btn-ghost:hover{ border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.06); }
+.btn-danger{
+  background:rgba(231,76,60,.12);
+  color:#E74C3C;
+  border:1px solid rgba(231,76,60,.25);
+}
+.btn-danger:hover{ background:rgba(231,76,60,.2); }
+
+/* EVENT CARDS */
+.ev-card{
+  border-radius:10px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  transition:transform .2s,box-shadow .2s;
+}
+.ev-card:hover{ transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.4); }
+
+/* TABS */
+.tab-bar{ border-bottom:1px solid rgba(255,255,255,.08); }
+.tab-item{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);
+  border-bottom:2px solid transparent;
+  transition:all .2s;padding:10px 16px;cursor:pointer;
+}
+.tab-item.active{ color:var(--gold);border-bottom-color:var(--gold); }
+
+/* FORM FIELDS */
+.field-input{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  color:var(--cream);
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;padding:11px 14px;
+  border-radius:6px;outline:none;
+  transition:border-color .2s,background .2s;
+  width:100%;box-sizing:border-box;
+}
+.field-input:focus{ border-color:var(--gold);background:rgba(255,255,255,.09); }
+.field-input::placeholder{ color:rgba(255,255,255,.25); }
+.field-label{
+  display:block;font-size:10px;font-weight:700;
+  color:rgba(255,255,255,.4);margin-bottom:6px;
+  letter-spacing:.1em;text-transform:uppercase;
+}
+
+/* STAT CHIPS */
+.stat-chip{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;padding:10px 14px;min-width:60px;
+}
+.stat-chip-num{ font-size:20px;font-weight:700;color:var(--cream); }
+.stat-chip-label{ font-size:9px;color:var(--soft);letter-spacing:.06em;text-transform:uppercase; }
+
+/* HOME NAV LINKS */
+.home-nav-btn{
+  background:none;border:none;color:rgba(255,255,255,.65);
+  font-family:'DM Sans',sans-serif;font-size:12px;
+  cursor:pointer;padding:6px 10px;border-radius:4px;
+  transition:color .2s;letter-spacing:.02em;
+}
+.home-nav-btn:hover{ color:white; }
+
+/* DETAIL NAV BUTTONS */
+.detail-nav-btn{
+  background:rgba(255,255,255,.12);border:none;color:white;
+  font-family:'DM Sans',sans-serif;font-size:11px;
+  padding:7px 14px;border-radius:20px;cursor:pointer;
+  backdrop-filter:blur(6px);transition:background .2s;
+  letter-spacing:.02em;
+}
+.detail-nav-btn:hover{ background:rgba(255,255,255,.22); }
+
+/* TOAST */
+.toast{
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;letter-spacing:.02em;
+  border-radius:6px;
+}
+
+/* ADMIN CARDS */
+.admin-card{
+  border-radius:10px;
+  transition:border-color .2s;
+}
+
+/* MODAL */
+.confirm-modal{
+  background:rgba(13,8,32,.95);
+  border:1px solid rgba(139,92,246,.25);
+  border-radius:12px;
+}
+
 </style>
 </head>
 <body>
@@ -716,7 +852,7 @@ a{color:var(--gold);text-decoration:none;}
   <nav class="app-nav">
     <div class="app-logo"><img src="data:image/jpeg;base64,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" style="height:44px;width:auto;border-radius:20%;" alt="Melup"></div>
     <div class="nav-btns">
-      <button class="btn btn-ghost" onclick="goTo('home')" style="font-size:11px;">🏠 Inicio</button>
+      <button class="home-nav-btn" onclick="goTo('home')">🏠 Inicio</button>
       
       <button class="btn btn-ghost btn-sm" onclick="cerrarSesion()">🔒 Salir</button>
       
@@ -747,7 +883,7 @@ a{color:var(--gold);text-decoration:none;}
   <nav class="app-nav">
     <div class="app-logo"><img src="data:image/jpeg;base64,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" style="height:44px;width:auto;border-radius:20%;" alt="Melup"></div>
     <div class="nav-btns">
-      <button class="btn btn-ghost" onclick="goTo('home')" style="font-size:11px;">🏠 Inicio</button>
+      <button class="home-nav-btn" onclick="goTo('home')">🏠 Inicio</button>
       <button class="btn btn-ghost" onclick="goTo('dashboard')">← Mis eventos</button>
     </div>
   </nav>
@@ -812,8 +948,8 @@ a{color:var(--gold);text-decoration:none;}
     <div class="detail-overlay"></div>
     <div class="detail-nav">
       <div style="display:flex;gap:8px;align-items:center;">
-        <button onclick="goTo('home')" style="background:rgba(255,255,255,.12);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;">🏠 Inicio</button>
-        <button class="detail-back" onclick="goTo('dashboard')">← Mis eventos</button>
+        <button class="detail-nav-btn" onclick="goTo('home')">🏠 Inicio</button>
+        <button class="detail-nav-btn" onclick="goTo('dashboard')">← Mis eventos</button>
       </div>
       <button class="btn btn-gold btn-sm" onclick="abrirVistaInvitado(null)">👁 Vista invitado</button>
     </div>
@@ -2211,13 +2347,13 @@ function editarEvento(id){
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;max-width:200px;margin:0 auto 8px;">
         <div></div>
-        <button type="button" onclick="moverPortada(0,-10)" class="pos-btn">↑</button>
+        <button type="button" onclick="moverPortada(0,-3)" class="pos-btn">↑</button>
         <div></div>
-        <button type="button" onclick="moverPortada(-10,0)" class="pos-btn">←</button>
+        <button type="button" onclick="moverPortada(-3,0)" class="pos-btn">←</button>
         <button type="button" onclick="centrarPortada()" class="pos-btn" style="background:#e8e8e8;font-size:9px;">⊙</button>
-        <button type="button" onclick="moverPortada(10,0)" class="pos-btn">→</button>
+        <button type="button" onclick="moverPortada(3,0)" class="pos-btn">→</button>
         <div></div>
-        <button type="button" onclick="moverPortada(0,10)" class="pos-btn">↓</button>
+        <button type="button" onclick="moverPortada(0,3)" class="pos-btn">↓</button>
         <div></div>
       </div>
       <div style="font-size:9px;color:#999;text-align:center;">Usá las flechas para mover la imagen</div>
@@ -4151,7 +4287,7 @@ function centrarPortada(){
   <!-- NAV -->
   <nav class="dash-nav" style="background:rgba(13,8,32,.98);border-bottom:1px solid rgba(139,92,246,.2);">
     <div style="display:flex;align-items:center;gap:12px;">
-      <button class="btn btn-ghost" onclick="goTo('home')" style="font-size:11px;padding:6px 12px;">← Inicio</button>
+      <button class="home-nav-btn" onclick="goTo('home')">🏠 Inicio</button>
       <span style="font-size:12px;color:var(--soft);letter-spacing:.05em;">⚙️ Panel Admin</span>
     </div>
     <div class="nav-btns">

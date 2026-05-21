@@ -1521,7 +1521,7 @@ function renderDashboard(){
     const nG=new Set(ev.media.map(m=>m.author)).size;
     const nQ=(ev.mesas||[]).length;
     const bannerStyle = ev.coverImage
-      ? `background:url('${ev.coverImage}') center/cover no-repeat`
+      ? `background:url('${ev.coverImage}') ${ev.coverPosition||'center'}/cover no-repeat`
       : `background:${t.bg}`;
     const bannerContent = ev.coverImage ? '' : (ev.type||t.icon);
     html+=`<div class="ev-card">
@@ -1556,7 +1556,7 @@ function abrirEvento(id){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const bannerEl = el('d-banner-bg');
   if(ev.coverImage){
-    bannerEl.style.background = `url('${ev.coverImage}') center/cover no-repeat`;
+    bannerEl.style.background = `url('${ev.coverImage}') ${ev.coverPosition||'center'}/cover no-repeat`;
     bannerEl.textContent = '';
   } else {
     bannerEl.style.background = t.bg;
@@ -1956,7 +1956,7 @@ function abrirVistaInvitado(mesaId,evId){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');
   if(ev.coverImage){
-    gi.style.background=`url('${ev.coverImage}') center/cover no-repeat`;
+    gi.style.background=`url('${ev.coverImage}') ${ev.coverPosition||'center'}/cover no-repeat`;
     gi.style.backgroundSize='cover';
     gi.textContent='';
   } else {
@@ -2180,7 +2180,26 @@ function editarEvento(id){
   // Show existing cover in edit form
   const editCoverPrev = el('edit-cover-preview');
   if(ev.coverImage){
-    editCoverPrev.innerHTML = `<img src="${ev.coverImage}" style="width:100%;max-height:120px;object-fit:cover;border-radius:4px;"><div style="font-size:10px;color:var(--soft);margin-top:5px;">Tocá para cambiar</div>`;
+    const pos = ev.coverPosition || 'center';
+    editCoverPrev.innerHTML = `
+      <div style="position:relative;width:100%;height:120px;border-radius:4px;overflow:hidden;background:#111;">
+        <img src="${ev.coverImage}" id="edit-cover-img-preview" 
+          style="width:100%;height:100%;object-fit:cover;object-position:${pos};border-radius:4px;">
+      </div>
+      <div style="font-size:10px;color:var(--soft);margin-top:5px;text-align:center;">Tocá para cambiar imagen</div>
+      <div style="margin-top:10px;">
+        <div style="font-size:10px;color:var(--soft);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;">Posición de la imagen</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${['top','center','bottom','left','right'].map(p=>`
+            <button onclick="cambiarPosicionPortada('${p}')" 
+              style="padding:4px 10px;font-size:10px;border-radius:3px;cursor:pointer;
+              background:${pos===p?'var(--gold)':'rgba(255,255,255,.08)'};
+              color:${pos===p?'#000':'var(--soft)'};border:1px solid ${pos===p?'var(--gold)':'rgba(255,255,255,.1)'};
+              font-weight:${pos===p?'700':'400'};">
+              ${p==='top'?'⬆ Arriba':p==='center'?'⊙ Centro':p==='bottom'?'⬇ Abajo':p==='left'?'⬅ Izquierda':'➡ Derecha'}
+            </button>`).join('')}
+        </div>
+      </div>`;
   } else {
     editCoverPrev.innerHTML = '<div style="font-size:24px;margin-bottom:6px;">🖼</div><div style="font-size:11px;color:var(--soft);">Sin imagen de portada — tocá para subir</div>';
   }
@@ -4031,6 +4050,28 @@ const _origHacerLogin = hacerLogin;
 hacerLogin = async function(){
   await _origHacerLogin.apply(this, arguments);
 };
+
+
+// ── COVER IMAGE POSITION ──────────────────────────────────────
+function cambiarPosicionPortada(pos){
+  const ev = appState.events.find(e=>e.id===editingId);
+  if(!ev) return;
+  ev.coverPosition = pos;
+
+  // Update preview
+  const img = document.getElementById('edit-cover-img-preview');
+  if(img) img.style.objectPosition = pos;
+
+  // Update buttons highlight
+  document.querySelectorAll('[onclick^="cambiarPosicionPortada"]').forEach(btn=>{
+    const btnPos = btn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    const isActive = btnPos === pos;
+    btn.style.background = isActive ? 'var(--gold)' : 'rgba(255,255,255,.08)';
+    btn.style.color = isActive ? '#000' : 'var(--soft)';
+    btn.style.borderColor = isActive ? 'var(--gold)' : 'rgba(255,255,255,.1)';
+    btn.style.fontWeight = isActive ? '700' : '400';
+  });
+}
 
 </script>
 

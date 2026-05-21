@@ -4512,30 +4512,36 @@ async function aplicarRecorte(){
   const status = document.getElementById('crop-status');
   if(status){ status.textContent = '⏳ Procesando...'; status.style.display='block'; }
 
-  // Convert crop box coords to natural image coords
-  const wW = wrap.clientWidth, wH = wrap.clientHeight;
-  const dispImgW = parseFloat(img.style.width);
-  const dispImgH = parseFloat(img.style.height);
-  const imgLeft  = parseFloat(img.style.left) || 0;
-  const imgTop   = parseFloat(img.style.top)  || 0;
+  // Get actual displayed image position (may have been moved with arrows)
+  const dispImgW = parseFloat(img.style.width)  || img.clientWidth;
+  const dispImgH = parseFloat(img.style.height) || img.clientHeight;
+  const imgLeft  = parseFloat(img.style.left)   || 0;
+  const imgTop   = parseFloat(img.style.top)    || 0;
 
-  // Crop box relative to image display
-  const relX = (cropState.boxX - imgLeft) / dispImgW;
-  const relY = (cropState.boxY - imgTop)  / dispImgH;
-  const relW = cropState.boxW / dispImgW;
-  const relH = cropState.boxH / dispImgH;
+  // Crop box position relative to the displayed image
+  const boxRelX = cropState.boxX - imgLeft;
+  const boxRelY = cropState.boxY - imgTop;
 
-  // Natural coords
-  const natX = Math.max(0, relX * cropState.imgNatW);
-  const natY = Math.max(0, relY * cropState.imgNatH);
-  const natW = Math.min(cropState.imgNatW - natX, relW * cropState.imgNatW);
-  const natH = Math.min(cropState.imgNatH - natY, relH * cropState.imgNatH);
+  // Convert to natural image coordinates
+  const scaleX = cropState.imgNatW / dispImgW;
+  const scaleY = cropState.imgNatH / dispImgH;
 
-  // Draw cropped image on canvas
+  const natX = Math.max(0, boxRelX * scaleX);
+  const natY = Math.max(0, boxRelY * scaleY);
+  const natW = Math.min(cropState.imgNatW - natX, cropState.boxW * scaleX);
+  const natH = Math.min(cropState.imgNatH - natY, cropState.boxH * scaleY);
+
+  console.log('Display img:', dispImgW, 'x', dispImgH, 'at', imgLeft, imgTop);
+  console.log('Crop box:', cropState.boxX, cropState.boxY, cropState.boxW, cropState.boxH);
+  console.log('Scale:', scaleX, scaleY);
+
+  // Draw cropped image on canvas - preserve crop ratio
   const canvas = document.createElement('canvas');
-  // Output: always 1200x300 (4:1 banner ratio) for consistent display
+  const cropRatio = cropState.boxW / cropState.boxH;
   canvas.width  = 1200;
-  canvas.height = Math.round(1200 * (cropState.boxH / cropState.boxW));
+  canvas.height = Math.round(1200 / cropRatio);
+  // Minimum height
+  if(canvas.height < 100) canvas.height = 100;
   const ctx = canvas.getContext('2d');
 
   // Load fresh image (avoid CORS issues with cached)

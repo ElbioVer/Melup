@@ -301,15 +301,15 @@ a{color:var(--gold);text-decoration:none;}
 .guest-name-hint{font-size:10px;color:rgba(255,200,80,.6);margin-top:7px;text-align:center;letter-spacing:.02em;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 /* ── PRESENTATION SETTINGS ──────────────────────────────── */
-.pres-section{ background:var(--card);border:1px solid var(--border);
+.pres-section{ background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);
                border-radius:6px;padding:20px;margin-bottom:14px; }
-.pres-section-title{ font-size:12px;font-weight:700;color:var(--cream);
+.pres-section-title{ font-size:14px;font-weight:700;color:#1a1230;
                      margin-bottom:4px;display:flex;align-items:center;gap:7px; }
-.pres-section-desc{ font-size:10px;color:var(--soft);margin-bottom:14px;line-height:1.6; }
-.pres-toggle{ display:flex;align-items:center;justify-content:space-between;
+.pres-section-desc{ font-size:12px;color:#555;margin-bottom:14px;line-height:1.6; }
+.pres-toggle{ display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.7);border:1px solid rgba(139,92,246,.15);
               padding:10px 14px;background:rgba(255,255,255,.03);
               border:1px solid var(--border);border-radius:4px;margin-bottom:12px; }
-.pres-toggle-label{ font-size:12px;color:var(--cream); }
+.pres-toggle-label{ font-size:13px;color:#1a1230;font-weight:500; }
 .toggle-sw{ position:relative;width:40px;height:22px;cursor:pointer; }
 .toggle-sw input{ opacity:0;width:0;height:0; }
 .toggle-track{ position:absolute;inset:0;background:rgba(255,255,255,.1);
@@ -329,7 +329,7 @@ a{color:var(--gold);text-decoration:none;}
                   display:flex;align-items:center;justify-content:center;
                   font-size:9px;color:var(--soft);text-align:center;padding:6px; }
 .dur-slider{ width:100%;accent-color:var(--gold);margin:8px 0; }
-.dur-value{ font-size:13px;font-weight:700;color:var(--gold);text-align:center; }
+.dur-value{ font-size:16px;font-weight:700;color:#8B5CF6;text-align:center;margin-bottom:4px; }
 .pres-upload-area{ border:2px dashed rgba(255,255,255,.15);border-radius:4px;
                    padding:16px;text-align:center;cursor:pointer;transition:border-color .2s; }
 .pres-upload-area:hover{ border-color:var(--gold); }
@@ -627,13 +627,15 @@ a{color:var(--gold);text-decoration:none;}
 .pos-btn{
   background:#6C3F9E;
   border:1px solid #8B5CF6;
-  border-radius:6px;padding:8px 14px;
-  font-size:16px;cursor:pointer;line-height:1;
+  border-radius:8px;
+  width:44px;height:44px;
+  font-size:18px;cursor:pointer;line-height:1;
   transition:all .15s;color:white;
-  min-width:44px;font-weight:700;
+  font-weight:700;display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 6px rgba(139,92,246,.3);
+  padding:0;
 }
-.pos-btn:hover{background:#FF4DA6;border-color:#FF4DA6;transform:scale(1.05);}
+.pos-btn:hover{background:#FF4DA6;border-color:#FF4DA6;transform:scale(1.08);}
 .pos-btn:active{transform:scale(.95);}
 .zoom-slider{width:100%;accent-color:#8B5CF6;margin:6px 0;cursor:pointer;}
 
@@ -1067,8 +1069,7 @@ a{color:var(--gold);text-decoration:none;}
 
       <!-- PRESENTACIÓN EN VIVO CONFIG -->
       <div style="margin-bottom:14px;">
-        <div style="font-size:11px;font-weight:700;color:var(--soft);letter-spacing:.1em;
-                    text-transform:uppercase;margin-bottom:10px;">🎬 Presentación en vivo</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1230;letter-spacing:.05em;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid rgba(139,92,246,.2);">🎬 Presentación en vivo</div>
 
         <!-- Toggle fondo -->
         <div class="pres-section">
@@ -2334,10 +2335,15 @@ function editarEvento(id){
   setTimeout(initCoverPos, 100);
   if(ev.coverImage){
     const pos = ev.coverPosition || '50% 50%';
+    const zoom = ev.coverZoom || 100;
     editCoverPrev.innerHTML = `
-      <img src="${ev.coverImage}" id="edit-cover-img-preview" 
-        style="width:100%;max-height:120px;object-fit:cover;object-position:${pos};border-radius:4px;">
-      <div style="font-size:10px;color:var(--soft);margin-top:5px;text-align:center;">Tocá para cambiar imagen</div>`;
+      <div style="width:100%;height:150px;overflow:hidden;border-radius:6px;border:2px solid rgba(139,92,246,.3);background:#111;position:relative;">
+        <img src="${ev.coverImage}" id="edit-cover-img-preview" 
+          style="width:100%;height:100%;object-fit:cover;object-position:${pos};
+                 transform:scale(${zoom/100});transform-origin:${pos};
+                 transition:transform .2s,object-position .2s;">
+      </div>
+      <div style="font-size:10px;color:#888;margin-top:6px;text-align:center;">📷 Tocá para cambiar imagen</div>`;
     
     // Add position controls OUTSIDE the clickable area
     const posControls = document.createElement('div');
@@ -2367,14 +2373,15 @@ function editarEvento(id){
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
             <span style="font-size:13px;">🔍</span>
             <input type="range" class="zoom-slider" id="cover-zoom-slider"
-              min="100" max="200" step="5" value="${(ev.coverZoom||100)}"
+              min="50" max="200" step="5" value="${(ev.coverZoom||100)}"
               oninput="cambiarZoomPortada(this.value)">
             <span style="font-size:11px;color:#555;font-weight:700;" id="cover-zoom-val">${(ev.coverZoom||100)}%</span>
           </div>
-          <div style="display:flex;gap:5px;">
-            <button type="button" onclick="cambiarZoomPortada(100)" class="pos-btn" style="flex:1;font-size:10px;padding:6px;">100%</button>
-            <button type="button" onclick="cambiarZoomPortada(125)" class="pos-btn" style="flex:1;font-size:10px;padding:6px;">125%</button>
-            <button type="button" onclick="cambiarZoomPortada(150)" class="pos-btn" style="flex:1;font-size:10px;padding:6px;">150%</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">
+            <button type="button" onclick="cambiarZoomPortada(50)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">50%</button>
+            <button type="button" onclick="cambiarZoomPortada(75)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">75%</button>
+            <button type="button" onclick="cambiarZoomPortada(100)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">100%</button>
+            <button type="button" onclick="cambiarZoomPortada(150)" class="pos-btn" style="width:auto;height:32px;font-size:10px;padding:0 6px;border-radius:4px;">150%</button>
           </div>
         </div>
       </div>
@@ -4257,7 +4264,10 @@ function moverPortada(dx, dy){
   const pos = `${_coverPosX}% ${_coverPosY}%`;
   ev.coverPosition = pos;
   const img = document.getElementById('edit-cover-img-preview');
-  if(img) img.style.objectPosition = pos;
+  if(img){
+    img.style.objectPosition = pos;
+    img.style.transformOrigin = pos;
+  }
 }
 
 function centrarPortada(){
@@ -4276,11 +4286,9 @@ function cambiarZoomPortada(zoom){
   ev.coverZoom = zoom;
   const img = document.getElementById('edit-cover-img-preview');
   if(img){
-    img.style.objectFit = zoom > 100 ? 'cover' : 'contain';
-    img.style.transform = zoom > 100 ? `scale(${zoom/100})` : 'scale(1)';
+    img.style.transform = `scale(${zoom/100})`;
     img.style.transformOrigin = `${_coverPosX}% ${_coverPosY}%`;
   }
-  // Update slider and label
   const slider = document.getElementById('cover-zoom-slider');
   const label = document.getElementById('cover-zoom-val');
   if(slider) slider.value = zoom;

@@ -625,15 +625,17 @@ a{color:var(--gold);text-decoration:none;}
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.2} }
 
 .pos-btn{
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:6px;padding:8px 12px;
+  background:#6C3F9E;
+  border:1px solid #8B5CF6;
+  border-radius:6px;padding:8px 14px;
   font-size:16px;cursor:pointer;line-height:1;
-  transition:all .15s;color:var(--cream);
-  min-width:40px;
+  transition:all .15s;color:white;
+  min-width:44px;font-weight:700;
+  box-shadow:0 2px 6px rgba(139,92,246,.3);
 }
-.pos-btn:hover{background:rgba(245,200,66,.15);border-color:var(--gold);color:var(--gold);}
-.pos-btn:active{background:rgba(245,200,66,.25);}
+.pos-btn:hover{background:#FF4DA6;border-color:#FF4DA6;transform:scale(1.05);}
+.pos-btn:active{transform:scale(.95);}
+.zoom-slider{width:100%;accent-color:#8B5CF6;margin:6px 0;cursor:pointer;}
 
 /* ══════════════════════════════════════════════════════
    MELUP UNIFIED DESIGN SYSTEM
@@ -1705,7 +1707,7 @@ function abrirEvento(id){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const bannerEl = el('d-banner-bg');
   if(ev.coverImage){
-    bannerEl.style.background = `url('${ev.coverImage}') ${ev.coverPosition||'center'}/cover no-repeat`;
+    bannerEl.style.background = `url('${ev.coverImage}') ${ev.coverPosition||'center'}/${ev.coverZoom&&ev.coverZoom!==100?(ev.coverZoom+'%'):'cover'} no-repeat`;
     bannerEl.textContent = '';
   } else {
     bannerEl.style.background = t.bg;
@@ -2105,7 +2107,7 @@ function abrirVistaInvitado(mesaId,evId){
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');
   if(ev.coverImage){
-    gi.style.background=`url('${ev.coverImage}') ${ev.coverPosition||'center'}/cover no-repeat`;
+    gi.style.background=`url('${ev.coverImage}') ${ev.coverPosition||'center'}/${ev.coverZoom&&ev.coverZoom!==100?(ev.coverZoom+'%'):'cover'} no-repeat`;
     gi.style.backgroundSize='cover';
     gi.textContent='';
   } else {
@@ -2342,21 +2344,40 @@ function editarEvento(id){
     posControls.id = 'cover-pos-controls';
     posControls.style.cssText = 'margin-top:12px;';
     posControls.innerHTML = `
-      <div style="font-size:10px;color:#666;margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;">
-        Ajustar posición de la imagen
+      <div style="font-size:10px;color:#555;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;">
+        📐 Ajustar posición y zoom
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;max-width:200px;margin:0 auto 8px;">
-        <div></div>
-        <button type="button" onclick="moverPortada(0,-3)" class="pos-btn">↑</button>
-        <div></div>
-        <button type="button" onclick="moverPortada(-3,0)" class="pos-btn">←</button>
-        <button type="button" onclick="centrarPortada()" class="pos-btn" style="background:#e8e8e8;font-size:9px;">⊙</button>
-        <button type="button" onclick="moverPortada(3,0)" class="pos-btn">→</button>
-        <div></div>
-        <button type="button" onclick="moverPortada(0,3)" class="pos-btn">↓</button>
-        <div></div>
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:9px;color:#888;margin-bottom:6px;text-align:center;">Mover imagen</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;width:140px;">
+            <div></div>
+            <button type="button" onclick="moverPortada(0,-3)" class="pos-btn">↑</button>
+            <div></div>
+            <button type="button" onclick="moverPortada(-3,0)" class="pos-btn">←</button>
+            <button type="button" onclick="centrarPortada()" class="pos-btn" title="Centrar">⊙</button>
+            <button type="button" onclick="moverPortada(3,0)" class="pos-btn">→</button>
+            <div></div>
+            <button type="button" onclick="moverPortada(0,3)" class="pos-btn">↓</button>
+            <div></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:140px;">
+          <div style="font-size:9px;color:#888;margin-bottom:6px;">Zoom</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;">🔍</span>
+            <input type="range" class="zoom-slider" id="cover-zoom-slider"
+              min="100" max="200" step="5" value="${(ev.coverZoom||100)}"
+              oninput="cambiarZoomPortada(this.value)">
+            <span style="font-size:11px;color:#555;font-weight:700;" id="cover-zoom-val">${(ev.coverZoom||100)}%</span>
+          </div>
+          <div style="display:flex;gap:5px;">
+            <button type="button" onclick="cambiarZoomPortada(100)" class="pos-btn" style="flex:1;font-size:10px;padding:6px;">100%</button>
+            <button type="button" onclick="cambiarZoomPortada(125)" class="pos-btn" style="flex:1;font-size:10px;padding:6px;">125%</button>
+            <button type="button" onclick="cambiarZoomPortada(150)" class="pos-btn" style="flex:1;font-size:10px;padding:6px;">150%</button>
+          </div>
+        </div>
       </div>
-      <div style="font-size:9px;color:#999;text-align:center;">Usá las flechas para mover la imagen</div>
     `;
     
     const coverArea = el('edit-cover-area');
@@ -2399,6 +2420,7 @@ function guardarEdicion(){
   ev.type     = el('edit-type').value;
   ev.template = editTemplate;
   if(pendingEditCoverImage){ ev.coverImage = pendingEditCoverImage; pendingEditCoverImage=null; }
+  // coverPosition and coverZoom are already saved via moverPortada/cambiarZoomPortada
   cerrarEditar();
   sbSaveEvent(ev).then(()=>{
     toast('Evento actualizado ✓');
@@ -4244,6 +4266,25 @@ function centrarPortada(){
   if(ev){ ev.coverPosition = '50% 50%'; }
   const img = document.getElementById('edit-cover-img-preview');
   if(img) img.style.objectPosition = '50% 50%';
+}
+
+
+function cambiarZoomPortada(zoom){
+  zoom = parseInt(zoom);
+  const ev = appState.events.find(e=>e.id===editingId);
+  if(!ev) return;
+  ev.coverZoom = zoom;
+  const img = document.getElementById('edit-cover-img-preview');
+  if(img){
+    img.style.objectFit = zoom > 100 ? 'cover' : 'contain';
+    img.style.transform = zoom > 100 ? `scale(${zoom/100})` : 'scale(1)';
+    img.style.transformOrigin = `${_coverPosX}% ${_coverPosY}%`;
+  }
+  // Update slider and label
+  const slider = document.getElementById('cover-zoom-slider');
+  const label = document.getElementById('cover-zoom-val');
+  if(slider) slider.value = zoom;
+  if(label) label.textContent = zoom + '%';
 }
 
 </script>

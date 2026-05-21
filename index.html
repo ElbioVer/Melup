@@ -805,13 +805,17 @@ a{color:var(--gold);text-decoration:none;}
 }
 .cropper-ratio-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
 .cropper-ratio-btn{
-  padding:5px 12px;font-size:10px;font-weight:700;
-  border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);
+  padding:6px 14px;font-size:11px;font-weight:700;
+  border-radius:4px;cursor:pointer;
+  border:1px solid #8B5CF6;
+  background:#3B1F6E;color:#C4B5FD;
   transition:all .15s;letter-spacing:.04em;
 }
-.cropper-ratio-btn:hover,.cropper-ratio-btn.active{
-  background:rgba(245,200,66,.2);border-color:var(--gold);color:var(--gold);
+.cropper-ratio-btn:hover{
+  background:#6C3F9E;color:white;
+}
+.cropper-ratio-btn.active{
+  background:#F5C842;border-color:#F5C842;color:#1a1230;
 }
 .cropper-actions{display:flex;gap:8px;margin-top:10px;}
 
@@ -2431,6 +2435,20 @@ function editarEvento(id){
         <button type="button" class="cropper-ratio-btn" onclick="setCropRatio(16,9)">16:9</button>
         <button type="button" class="cropper-ratio-btn" onclick="setCropRatio(3,1)">3:1</button>
         <button type="button" class="cropper-ratio-btn" onclick="setCropRatio(0,0)">Libre</button>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:9px;color:#888;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase;">Mover imagen dentro del recuadro</div>
+        <div style="display:grid;grid-template-columns:44px 44px 44px;gap:4px;justify-content:center;margin-bottom:8px;">
+          <div></div>
+          <button type="button" onclick="moverImagenCrop(0,-15)" class="pos-btn">↑</button>
+          <div></div>
+          <button type="button" onclick="moverImagenCrop(-15,0)" class="pos-btn">←</button>
+          <button type="button" onclick="centrarImagenCrop()" class="pos-btn" title="Centrar">⊙</button>
+          <button type="button" onclick="moverImagenCrop(15,0)" class="pos-btn">→</button>
+          <div></div>
+          <button type="button" onclick="moverImagenCrop(0,15)" class="pos-btn">↓</button>
+          <div></div>
+        </div>
       </div>
       <div class="cropper-actions">
         <button type="button" onclick="aplicarRecorte()" 
@@ -4581,6 +4599,36 @@ function resetearRecorte(){
   const status = document.getElementById('crop-status');
   if(status){ status.textContent='↺ Vista original'; status.style.display='block'; }
   setCropRatio(...cropState.ratio);
+}
+
+
+// Move the image inside the cropper (not the crop box)
+function moverImagenCrop(dx, dy){
+  const img = document.getElementById('cropper-img');
+  if(!img) return;
+  const curLeft = parseFloat(img.style.left) || 0;
+  const curTop  = parseFloat(img.style.top)  || 0;
+  const wrap = document.getElementById('cropper-wrap');
+  if(!wrap) return;
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  const iW = parseFloat(img.style.width)  || wW;
+  const iH = parseFloat(img.style.height) || wH;
+  // Clamp so image stays covering the wrap area
+  const newLeft = Math.min(0, Math.max(wW - iW, curLeft + dx));
+  const newTop  = Math.min(0, Math.max(wH - iH, curTop  + dy));
+  img.style.left = newLeft + 'px';
+  img.style.top  = newTop  + 'px';
+}
+
+function centrarImagenCrop(){
+  const img = document.getElementById('cropper-img');
+  const wrap = document.getElementById('cropper-wrap');
+  if(!img || !wrap) return;
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  const iW = parseFloat(img.style.width)  || wW;
+  const iH = parseFloat(img.style.height) || wH;
+  img.style.left = ((wW - iW) / 2) + 'px';
+  img.style.top  = ((wH - iH) / 2) + 'px';
 }
 
 </script>

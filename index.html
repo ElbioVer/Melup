@@ -346,7 +346,7 @@ a{color:var(--gold);text-decoration:none;}
              padding:22px;margin-bottom:14px; }
 .admin-card-title{ font-size:12px;font-weight:700;color:var(--cream);margin-bottom:4px; }
 .admin-card-desc{ font-size:11px;color:var(--soft);margin-bottom:16px;line-height:1.6; }
-.user-row{ background:rgba(255,255,255,.03);border:1px solid var(--border);
+.user-row{ background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
            padding:12px 14px;border-radius:4px;display:flex;align-items:center;gap:10px;margin-bottom:8px; }
 .user-row-dot{ width:7px;height:7px;border-radius:50%;background:#27AE60;flex-shrink:0; }
 .user-row-info{ flex:1; }
@@ -355,11 +355,8 @@ a{color:var(--gold);text-decoration:none;}
 .copy-result{ background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);
               border-radius:4px;padding:14px;font-size:11px;line-height:1.8;
               color:var(--cream);margin-top:12px;white-space:pre-wrap;display:none; }
-.admin-link-btn{ display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);
-                 border:1px solid var(--border);color:var(--soft);padding:12px 16px;
-                 font-size:12px;border-radius:4px;text-decoration:none;margin-bottom:8px;
-                 transition:border-color .2s;cursor:pointer; }
-.admin-link-btn:hover{ border-color:var(--gold);color:var(--gold); }
+.admin-link-btn{ display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.6);padding:14px 16px;font-size:12px;border-radius:6px;text-decoration:none;transition:all .2s;cursor:pointer; }
+.admin-link-btn:hover{ border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.06); }
 
 /* ── REGISTRO / INVITACIÓN ──────────────────────────────── */
 #register-screen{ background:linear-gradient(160deg,#0D0820 0%,#160830 100%); }
@@ -4144,30 +4141,49 @@ function centrarPortada(){
 
 <!-- ADMIN CONFIG SCREEN -->
 <div id="admin-config" class="screen" style="background:var(--bg);min-height:100vh;">
-  <nav class="dash-nav">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button class="btn btn-ghost" onclick="goTo('home')" style="font-size:11px;">← Inicio</button>
-      <span style="font-size:11px;color:var(--soft);">Panel Admin</span>
+
+  <!-- NAV -->
+  <nav class="dash-nav" style="background:rgba(13,8,32,.97);border-bottom:1px solid rgba(139,92,246,.2);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn btn-ghost" onclick="goTo('home')" style="font-size:11px;padding:6px 12px;">← Inicio</button>
+      <span style="font-size:12px;color:var(--soft);letter-spacing:.05em;">⚙️ Panel Admin</span>
     </div>
     <div class="nav-btns">
       <button class="btn btn-ghost btn-sm" onclick="cerrarSesion()">🔒 Salir</button>
     </div>
   </nav>
-  <div class="dash-body">
-    <h1 class="page-h">Panel de <em>administración</em></h1>
-    <p class="page-sub">Gestioná usuarios, configurá la app y accedé a los paneles externos.</p>
 
-    <div class="admin-tabs">
+  <div class="dash-body" style="max-width:800px;margin:0 auto;">
+    
+    <!-- HEADER -->
+    <div style="text-align:center;padding:32px 0 24px;">
+      <div style="font-size:36px;margin-bottom:8px;">⚙️</div>
+      <h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;
+                 color:var(--cream);margin-bottom:4px;">Panel de <em style="color:var(--gold);">administración</em></h1>
+      <p style="font-size:12px;color:var(--soft);">Gestioná usuarios, emails y configuración de Melup</p>
+    </div>
+
+    <!-- TABS -->
+    <div class="admin-tabs" style="margin-bottom:28px;">
       <div class="admin-tab active" onclick="switchAdminTab('usuarios')">👤 Usuarios</div>
       <div class="admin-tab" onclick="switchAdminTab('emails')">✉️ Emails</div>
       <div class="admin-tab" onclick="switchAdminTab('links')">🔗 Links</div>
     </div>
 
-    <!-- TAB USUARIOS -->
+    <!-- ── TAB USUARIOS ── -->
     <div class="admin-tab-content active" id="atab-usuarios">
-      <div class="admin-card">
-        <div class="admin-card-title">➕ Crear nuevo usuario de evento</div>
-        <div class="admin-card-desc">Completá los datos — el usuario entra directo con estas credenciales.</div>
+
+      <!-- CREATE USER CARD -->
+      <div class="admin-card" style="background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(255,77,166,.05));
+           border:1px solid rgba(139,92,246,.25);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:var(--grad);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;font-size:20px;">➕</div>
+          <div>
+            <div class="admin-card-title" style="font-size:14px;">Crear nuevo usuario</div>
+            <div class="admin-card-desc" style="margin-bottom:0;">El usuario entra directo con estas credenciales.</div>
+          </div>
+        </div>
         <div class="field-row">
           <div class="field">
             <label class="field-label">Nombre / Etiqueta</label>
@@ -4181,7 +4197,13 @@ function centrarPortada(){
         <div class="field-row">
           <div class="field">
             <label class="field-label">Contraseña</label>
-            <input type="text" id="au-pass" class="field-input" placeholder="Se generará automáticamente">
+            <div style="display:flex;gap:6px;">
+              <input type="text" id="au-pass" class="field-input" placeholder="Se generará automáticamente" style="flex:1;">
+              <button type="button" onclick="adminGenerarPass()" 
+                style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+                       color:var(--soft);padding:8px 10px;border-radius:4px;cursor:pointer;
+                       font-size:16px;white-space:nowrap;">🎲</button>
+            </div>
           </div>
           <div class="field">
             <label class="field-label">Cantidad de eventos</label>
@@ -4193,85 +4215,163 @@ function centrarPortada(){
             </select>
           </div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-          <button class="btn btn-ghost btn-sm" onclick="adminGenerarPass()">🎲 Generar pass</button>
-          <button class="btn btn-gold" id="au-btn" onclick="adminCrearUsuario()">+ Crear usuario</button>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button id="au-btn" onclick="adminCrearUsuario()" 
+            style="flex:1;background:var(--grad);color:white;border:none;padding:12px;
+                   font-size:13px;font-weight:700;cursor:pointer;border-radius:4px;letter-spacing:.04em;">
+            + Crear usuario
+          </button>
         </div>
         <div id="au-status" style="font-size:11px;margin-top:10px;min-height:16px;"></div>
         <div class="copy-result" id="au-result"></div>
         <div id="au-copy-btns" style="display:none;margin-top:8px;">
-          <button class="btn btn-ghost btn-sm" onclick="adminCopiarMensaje()">📋 Copiar mensaje WhatsApp</button>
+          <button onclick="adminCopiarMensaje()" 
+            style="width:100%;background:rgba(39,174,96,.15);color:#6FCF97;
+                   border:1px solid rgba(39,174,96,.3);padding:10px;font-size:12px;
+                   font-weight:700;cursor:pointer;border-radius:4px;">
+            📋 Copiar mensaje para WhatsApp
+          </button>
         </div>
       </div>
 
+      <!-- USERS LIST CARD -->
       <div class="admin-card">
-        <div class="admin-card-title">📋 Usuarios activos</div>
-        <div id="au-list"><div style="color:var(--soft);font-size:12px;padding:12px 0;">Cargando...</div></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:rgba(255,255,255,.06);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;font-size:20px;
+                      border:1px solid rgba(255,255,255,.1);">📋</div>
+          <div>
+            <div class="admin-card-title" style="font-size:14px;">Usuarios activos</div>
+            <div class="admin-card-desc" style="margin-bottom:0;">Gestioná el acceso de cada usuario.</div>
+          </div>
+        </div>
+        <div id="au-list">
+          <div style="text-align:center;padding:24px;color:var(--soft);font-size:12px;">
+            <div style="font-size:32px;margin-bottom:8px;">👥</div>
+            Cargando usuarios...
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- TAB EMAILS -->
+    <!-- ── TAB EMAILS ── -->
     <div class="admin-tab-content" id="atab-emails">
       <div class="admin-card">
-        <div class="admin-card-title">✉️ Plantilla de email de bienvenida</div>
-        <div class="admin-card-desc">
-          Copiá este HTML y pegalo en 
-          <strong style="color:var(--gold);">Supabase → Authentication → Email Templates → Confirm signup</strong>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:rgba(245,200,66,.12);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;font-size:20px;
+                      border:1px solid rgba(245,200,66,.2);">✉️</div>
+          <div>
+            <div class="admin-card-title" style="font-size:14px;">Email de bienvenida</div>
+            <div class="admin-card-desc" style="margin-bottom:0;">
+              Copiá el HTML y pegalo en <strong style="color:var(--gold);">Supabase → Auth → Email Templates → Confirm signup</strong>
+            </div>
+          </div>
         </div>
         <div class="field">
           <label class="field-label">Asunto</label>
           <input type="text" id="email-asunto" class="field-input" 
-            value="✦ Bienvenido/a a Melup — Confirmá tu cuenta"
-            onclick="this.select()">
+            value="✦ Bienvenido/a a Melup — Confirmá tu cuenta" onclick="this.select()">
         </div>
         <div class="field" style="margin-top:12px;">
-          <label class="field-label">HTML del email (copiar y pegar en Supabase)</label>
-          <textarea class="field-input" id="email-body" style="min-height:200px;font-size:11px;line-height:1.6;" onclick="this.select()" readonly><h2 style="font-family:sans-serif;color:#0D0820;">¡Bienvenido/a a Melup! 🎉</h2>
+          <label class="field-label">HTML del email</label>
+          <textarea class="field-input" id="email-body" style="min-height:180px;font-size:11px;line-height:1.6;" onclick="this.select()" readonly><h2 style="font-family:sans-serif;color:#0D0820;">¡Bienvenido/a a Melup! 🎉</h2>
 <p style="font-family:sans-serif;color:#333;margin-bottom:10px;">Alguien creó una cuenta para vos en <strong>Melup — Álbumes de Eventos</strong>.</p>
 <p style="font-family:sans-serif;color:#333;">Hacé clic para confirmar tu email y acceder a tu panel:</p>
 <div style="margin:20px 0;">
   <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:linear-gradient(135deg,#FF4DA6,#8B5CF6);color:white;padding:14px 28px;font-family:sans-serif;font-weight:700;text-decoration:none;border-radius:4px;">✦ Confirmar y acceder a Melup</a>
 </div>
-<p style="font-family:sans-serif;color:#999;font-size:12px;">Una vez confirmado, ingresá desde: <a href="https://elbiover.github.io/Melup/" style="color:#8B5CF6;">elbiover.github.io/Melup/</a></p>
-<p style="font-family:sans-serif;color:#ccc;font-size:11px;margin-top:24px;">Melup by EVDigital — Álbumes de eventos en tiempo real</p></textarea>
+<p style="font-family:sans-serif;color:#999;font-size:12px;">Una vez confirmado ingresá desde: <a href="https://elbiover.github.io/Melup/" style="color:#8B5CF6;">elbiover.github.io/Melup/</a></p>
+<p style="font-family:sans-serif;color:#ccc;font-size:11px;margin-top:24px;">Melup by EVDigital</p></textarea>
         </div>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-          <button class="btn btn-gold btn-sm" onclick="adminCopiarEmail()">📋 Copiar HTML</button>
+          <button onclick="adminCopiarEmail()" 
+            style="flex:1;background:var(--grad);color:white;border:none;padding:10px;
+                   font-size:12px;font-weight:700;cursor:pointer;border-radius:4px;">
+            📋 Copiar HTML
+          </button>
           <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg/auth/templates" 
-             target="_blank" class="btn btn-ghost btn-sm">🔗 Abrir templates en Supabase</a>
+             target="_blank" 
+             style="flex:1;background:rgba(255,255,255,.06);color:var(--soft);border:1px solid rgba(255,255,255,.1);
+                    padding:10px;font-size:12px;font-weight:600;cursor:pointer;border-radius:4px;
+                    text-decoration:none;text-align:center;">
+            🔗 Abrir en Supabase
+          </a>
         </div>
-        <div id="email-status" style="font-size:11px;margin-top:8px;color:#6FCF97;display:none;">✅ HTML copiado — pegalo en Supabase</div>
+        <div id="email-status" style="font-size:11px;margin-top:8px;color:#6FCF97;display:none;">✅ HTML copiado</div>
       </div>
 
       <div class="admin-card">
-        <div class="admin-card-title">⚙️ Confirmar usuarios manualmente</div>
-        <div class="admin-card-desc">Si un usuario no recibe el email de confirmación, ingresá su email y confirmalo directamente.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:rgba(39,174,96,.12);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;font-size:20px;
+                      border:1px solid rgba(39,174,96,.2);">✓</div>
+          <div>
+            <div class="admin-card-title" style="font-size:14px;">Confirmar usuario manualmente</div>
+            <div class="admin-card-desc" style="margin-bottom:0;">Si el email de confirmación no llegó, confirmá directamente desde acá.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
           <input type="email" id="confirm-email-input" class="field-input" 
             placeholder="email-del-usuario@ejemplo.com" style="flex:1;">
-          <button class="btn btn-gold btn-sm" onclick="adminConfirmarUsuario()">✓ Confirmar</button>
+          <button onclick="adminConfirmarUsuario()"
+            style="background:rgba(39,174,96,.2);color:#6FCF97;border:1px solid rgba(39,174,96,.3);
+                   padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;border-radius:4px;
+                   white-space:nowrap;">
+            ✓ Confirmar
+          </button>
         </div>
         <div id="confirm-status" style="font-size:11px;margin-top:8px;min-height:16px;"></div>
       </div>
     </div>
 
-    <!-- TAB LINKS -->
+    <!-- ── TAB LINKS ── -->
     <div class="admin-tab-content" id="atab-links">
       <div class="admin-card">
-        <div class="admin-card-title">🔗 Accesos directos</div>
-        <a href="https://elbiover.github.io/Melup/" target="_blank" class="admin-link-btn">🌐 App Melup</a>
-        <a href="https://github.com/elbiover/Melup" target="_blank" class="admin-link-btn">💾 Repositorio GitHub</a>
-        <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg" target="_blank" class="admin-link-btn">🗄️ Panel Supabase</a>
-        <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg/auth/users" target="_blank" class="admin-link-btn">👤 Usuarios en Supabase</a>
-        <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg/auth/templates" target="_blank" class="admin-link-btn">✉️ Templates email Supabase</a>
-        <a href="https://cloudinary.com/console" target="_blank" class="admin-link-btn">📸 Panel Cloudinary</a>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div style="width:40px;height:40px;background:rgba(255,77,166,.12);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;font-size:20px;
+                      border:1px solid rgba(255,77,166,.2);">🔗</div>
+          <div>
+            <div class="admin-card-title" style="font-size:14px;">Accesos directos</div>
+            <div class="admin-card-desc" style="margin-bottom:0;">Tus paneles más usados en un clic.</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <a href="https://elbiover.github.io/Melup/" target="_blank" class="admin-link-btn">
+            <span style="font-size:20px;">🌐</span><span>App Melup</span>
+          </a>
+          <a href="https://github.com/elbiover/Melup" target="_blank" class="admin-link-btn">
+            <span style="font-size:20px;">💾</span><span>GitHub</span>
+          </a>
+          <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg" target="_blank" class="admin-link-btn">
+            <span style="font-size:20px;">🗄️</span><span>Supabase</span>
+          </a>
+          <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg/auth/users" target="_blank" class="admin-link-btn">
+            <span style="font-size:20px;">👤</span><span>Usuarios Supabase</span>
+          </a>
+          <a href="https://supabase.com/dashboard/project/ztkhdjhbmdmlbpbmsqcg/auth/templates" target="_blank" class="admin-link-btn">
+            <span style="font-size:20px;">✉️</span><span>Email Templates</span>
+          </a>
+          <a href="https://cloudinary.com/console" target="_blank" class="admin-link-btn">
+            <span style="font-size:20px;">📸</span><span>Cloudinary</span>
+          </a>
+        </div>
       </div>
 
       <div class="admin-card">
-        <div class="admin-card-title">📱 Mensaje para compartir Melup</div>
-        <div class="admin-card-desc">Copiá este mensaje para promocionar la app.</div>
-        <div id="share-melup-msg" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);
-          border-radius:4px;padding:14px;font-size:12px;line-height:1.8;color:var(--cream);white-space:pre-wrap;">🎉 Conocé Melup — Álbumes de eventos en tiempo real
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;background:rgba(245,200,66,.12);border-radius:10px;
+                      display:flex;align-items:center;justify-content:center;font-size:20px;
+                      border:1px solid rgba(245,200,66,.2);">📱</div>
+          <div>
+            <div class="admin-card-title" style="font-size:14px;">Compartir Melup</div>
+            <div class="admin-card-desc" style="margin-bottom:0;">Mensaje listo para promocionar la app.</div>
+          </div>
+        </div>
+        <div id="share-melup-msg" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.12);
+          border-radius:4px;padding:14px;font-size:12px;line-height:1.8;color:var(--cream);
+          white-space:pre-wrap;">🎉 Conocé Melup — Álbumes de eventos en tiempo real
 
 Creá tu evento, generá QR para cada mesa y tus invitados suben fotos y videos directo al álbum. Sin apps, sin registros.
 
@@ -4281,13 +4381,16 @@ Creá tu evento, generá QR para cada mesa y tus invitados suben fotos y videos 
 📱 Funciona desde cualquier celular
 
 👉 Probalo acá: https://elbiover.github.io/Melup/</div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" 
-          onclick="navigator.clipboard.writeText(el('share-melup-msg').textContent).then(()=>toast('📋 Mensaje copiado'))">
+        <button onclick="navigator.clipboard.writeText(el('share-melup-msg').textContent).then(()=>toast('📋 Mensaje copiado'))"
+          style="width:100%;margin-top:10px;background:rgba(255,255,255,.06);color:var(--soft);
+                 border:1px solid rgba(255,255,255,.1);padding:10px;font-size:12px;
+                 font-weight:600;cursor:pointer;border-radius:4px;">
           📋 Copiar mensaje
         </button>
       </div>
     </div>
+
   </div>
 </div>
-</body>
-</html>
+
+>

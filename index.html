@@ -3124,65 +3124,75 @@ function toggleSlidePause(){
 function escucharNuevasAprobadas(){
   if(slideState.realtimeSub) sb.removeChannel(slideState.realtimeSub);
 
-  // Works both for admin (sbUser exists) and for public show URL
   slideState.realtimeSub = sb
     .channel('slideshow-'+slideState.evId)
     .on('postgres_changes',
       {event:'UPDATE', schema:'public', table:'melup_events'},
       payload=>{
-        const newEv = payload.new?.data;
-        if(!newEv || newEv.id !== slideState.evId) return;
+        console.log('[Realtime] UPDATE recibido:', payload);
+
+        // payload.new.data puede ser objeto o string según la versión
+        let newEv = payload.new?.data;
+        if(typeof newEv === 'string'){
+          try{ newEv = JSON.parse(newEv); }catch(e){ console.error('[Realtime] Error parseando data', e); return; }
+        }
+        if(!newEv){
+          console.warn('[Realtime] payload.new.data vacío, intentando payload.new directamente');
+          newEv = payload.new;
+        }
+        if(!newEv || !newEv.id){
+          console.warn('[Realtime] No se pudo obtener el evento del payload', payload);
+          return;
+        }
+        if(newEv.id !== slideState.evId){
+          console.log('[Realtime] Evento diferente, ignorando:', newEv.id, '!=', slideState.evId);
+          return;
+        }
+
+        console.log('[Realtime] Actualizando slideshow para evento:', newEv.id);
 
         // Update local state
         const idx = appState.events.findIndex(e=>e.id===newEv.id);
         if(idx>=0) appState.events[idx]=newEv;
+        else appState.events.push(newEv);
 
-        // Get new approved media
-        const nuevasAprobadas = getMediaAprobada(newEv);
-        const prevCount = slideState.media.length;
-
-        // Always update config (background, text, laterals) even if photo count didn't change
+        // SIEMPRE actualizar fondo, texto e info lateral
         aplicarFondoSlide(null, newEv);
         actualizarTextoInvitacion(newEv);
         actualizarLaterales(newEv);
 
-        if(nuevasAprobadas.length === prevCount){
-          // No new photos but config may have changed — already updated above
-          // Still update counter in case
-          el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
-          return;
-        }
-
-        // Find truly new photos (not already in slideshow)
+        // Actualizar fotos aprobadas
+        const nuevasAprobadas = getMediaAprobada(newEv);
         const prevIds = new Set(slideState.media.map(m=>m.id));
         const agregadas = nuevasAprobadas.filter(m=>!prevIds.has(m.id));
 
-        // Update media list keeping current position
         slideState.media = nuevasAprobadas;
 
-        // Keep current index valid
+        // Mantener índice válido
         if(slideState.idx >= slideState.media.length){
-          slideState.idx = slideState.media.length - 1;
+          slideState.idx = Math.max(0, slideState.media.length - 1);
         }
 
-        // Update counter
-        el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
+        // Actualizar contador
+        if(el('slide-counter')){
+          el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
+        }
 
         if(agregadas.length > 0){
-          // Show a brief notification without interrupting current slide
+          console.log('[Realtime]', agregadas.length, 'foto(s) nueva(s) agregada(s)');
           toast('📸 ' + agregadas.length + ' foto(s) nueva(s) en la presentación');
+          // Mostrar la nueva foto inmediatamente si el slideshow no está pausado
+          if(!slideState.paused){
+            slideState.idx = slideState.media.length - 1;
+            mostrarSlide();
+            iniciarAutoplay();
+          }
         }
-
-        // Siempre actualizar fondo, texto e info lateral cuando cambia la config
-        aplicarFondoSlide(null, newEv);
-        actualizarTextoInvitacion(newEv);
-        actualizarLaterales(newEv);
       }
     ).subscribe((status)=>{
-      console.log('Slideshow realtime:', status);
+      console.log('[Realtime] Estado del canal slideshow:', status);
     });
 }
-
 // ── URL SHOW MODE (#show=evId) ────────────────────────────────
 // Guests/screens can open the slideshow via URL
 function checkShowURL(){

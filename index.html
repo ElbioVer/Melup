@@ -3141,7 +3141,17 @@ function escucharNuevasAprobadas(){
         const nuevasAprobadas = getMediaAprobada(newEv);
         const prevCount = slideState.media.length;
 
-        if(nuevasAprobadas.length === prevCount) return; // no change
+        // Always update config (background, text, laterals) even if photo count didn't change
+        aplicarFondoSlide(null, newEv);
+        actualizarTextoInvitacion(newEv);
+        actualizarLaterales(newEv);
+
+        if(nuevasAprobadas.length === prevCount){
+          // No new photos but config may have changed — already updated above
+          // Still update counter in case
+          el('slide-counter').textContent = (slideState.idx+1) + ' / ' + slideState.media.length;
+          return;
+        }
 
         // Find truly new photos (not already in slideshow)
         const prevIds = new Set(slideState.media.map(m=>m.id));
@@ -3162,6 +3172,11 @@ function escucharNuevasAprobadas(){
           // Show a brief notification without interrupting current slide
           toast('📸 ' + agregadas.length + ' foto(s) nueva(s) en la presentación');
         }
+
+        // Siempre actualizar fondo, texto e info lateral cuando cambia la config
+        aplicarFondoSlide(null, newEv);
+        actualizarTextoInvitacion(newEv);
+        actualizarLaterales(newEv);
       }
     ).subscribe((status)=>{
       console.log('Slideshow realtime:', status);

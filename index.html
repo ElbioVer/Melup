@@ -1520,6 +1520,23 @@ async function cerrarSesion(){
   mostrarLogin();
 }
 
+async function volverAlAdmin(){
+  // Remove impersonation banner
+  const banner = document.getElementById('impersonate-banner');
+  if(banner) banner.remove();
+  // Sign out impersonated user and sign back in as admin
+  stopRealtime();
+  try{ await sb.auth.signOut(); }catch(e){}
+  sbUser = null;
+  appState.events = [];
+  mostrarLogin();
+  // Show message to login as admin again
+  setTimeout(()=>{
+    const err = el('login-err');
+    if(err){ err.style.color='var(--violet)'; err.textContent = '✅ Sesión cerrada. Ingresá con tu cuenta de administrador.'; }
+  }, 200);
+}
+
 async function resetPassword(){
   const email = el('login-email').value.trim()||prompt('Ingresá tu email:');
   if(!email) return;
@@ -4137,7 +4154,7 @@ function guardarConfigPres(){
     tmplUrl:     ev.presConfig?.tmplUrl || null,
     duration:    parseInt(el('pres-duration')?.value || 5),
     inviteEnabled: el('pres-invite-enabled')?.checked || false,
-    inviteText:  el('pres-invite-text')?.value || '✨ Escaneá el QR y sumá tu foto a la presentación',
+    inviteText:  el('pres-invite-text')?.value || '📸 ¡Escaneá el QR de tu mesa y subí tus fotos! Así armamos juntos el álbum del evento en tiempo real.',
     inviteColor: ev.presConfig?.inviteColor || '#F5C842',
     sidesEnabled: el('pres-sides-enabled')?.checked !== false,
   };
@@ -4153,8 +4170,8 @@ function cargarConfigPres(){
   if(el('pres-bg-enabled'))   el('pres-bg-enabled').checked   = cfg.bgEnabled || false;
   if(el('pres-duration'))     el('pres-duration').value        = cfg.duration || 5;
   if(el('dur-display'))       el('dur-display').textContent    = cfg.duration || 5;
-  if(el('pres-invite-enabled')) el('pres-invite-enabled').checked = cfg.inviteEnabled || false;
-  if(el('pres-invite-text'))  el('pres-invite-text').value     = cfg.inviteText || '';
+  if(el('pres-invite-enabled')) el('pres-invite-enabled').checked = cfg.inviteEnabled !== undefined ? cfg.inviteEnabled : true;
+  if(el('pres-invite-text'))  el('pres-invite-text').value     = cfg.inviteText || '📸 ¡Escaneá el QR de tu mesa y subí tus fotos! Así armamos juntos el álbum del evento en tiempo real.';
   if(el('pres-sides-enabled')) el('pres-sides-enabled').checked = cfg.sidesEnabled !== false;
   slideState.duration = (cfg.duration || 5) * 1000;
 
@@ -5022,7 +5039,7 @@ async function adminImpersonar(email, pass){
     'display:flex;align-items:center;justify-content:center;gap:12px;';
   banner.innerHTML = `
     👁 Viendo como: <strong>${email}</strong>
-    <button onclick="cerrarSesion()" 
+    <button onclick="volverAlAdmin()" 
       style="background:white;color:#E74C3C;border:none;padding:4px 12px;
              border-radius:3px;cursor:pointer;font-size:11px;font-weight:700;">
       Volver al admin

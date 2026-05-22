@@ -1833,9 +1833,10 @@ function renderDashboard(){
     let sc='s-upcoming',st='Próximo';
     if(s&&e){if(now>=s&&now<=e){sc='s-active';st='Activo';}else if(now>e){sc='s-ended';st='Finalizado';}}
     const ds=s?s.toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'}):'—';
-    const nP=ev.media.filter(m=>m.type==='image').length;
-    const nV=ev.media.filter(m=>m.type==='video').length;
-    const nG=new Set(ev.media.map(m=>m.author)).size;
+    if(!ev || !ev.name) return; // skip corrupted events
+    const nP=(ev.media||[]).filter(m=>m.type==='image').length;
+    const nV=(ev.media||[]).filter(m=>m.type==='video').length;
+    const nG=new Set((ev.media||[]).map(m=>m.author)).size;
     const nQ=(ev.mesas||[]).length;
     const bannerStyle = ev.coverImage
       ? `background:url('${ev.coverImage}') ${ev.coverPosition||'center'}/cover no-repeat`
@@ -3548,7 +3549,7 @@ async function fbLoadEvents(){
     console.log('[fbLoadEvents] Usuario:', sbUser.email, '| Eventos encontrados:', (data||[]).length);
     (data||[]).forEach(row => console.log('  -', row.data?.name, '| user_id:', row.user_id));
     
-    appState.events = (data||[]).map(row=>row.data);
+    appState.events = (data||[]).map(row=>row.data).filter(ev=>ev && ev.id);
   }catch(e){
     console.warn('fbLoadEvents exception:', e);
   }

@@ -1533,7 +1533,7 @@ async function volverAlAdmin(){
   // Show message to login as admin again
   setTimeout(()=>{
     const err = el('login-err');
-    if(err){ err.style.color='var(--violet)'; err.textContent = '✅ Sesión cerrada. Ingresá con tu cuenta de administrador.'; }
+    if(err){ err.style.color='#A8F0C6'; err.style.background='rgba(0,180,100,.15)'; err.style.padding='6px 10px'; err.style.borderRadius='6px'; err.textContent = '✅ Sesión cerrada. Ingresá con tu cuenta de administrador.'; }
   }, 200);
 }
 

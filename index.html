@@ -3521,7 +3521,7 @@ async function fbLoadEvents(){
   if(!sbUser) return;
   
   try{
-    let query = sb.from('melup_events').select('id, data, updated_at');
+    let query = sb.from('melup_events').select('id, user_id, data, updated_at');
     
     if(!esAdmin()){
       // Check if user is approved first
@@ -3538,11 +3538,16 @@ async function fbLoadEvents(){
         }, 100);
         return;
       }
+      // Load events owned by this user
       query = query.eq('user_id', sbUser.id);
     }
     
     const { data, error } = await query.order('updated_at', { ascending:false });
     if(error){ console.warn('fbLoadEvents query error:', error); return; }
+    
+    console.log('[fbLoadEvents] Usuario:', sbUser.email, '| Eventos encontrados:', (data||[]).length);
+    (data||[]).forEach(row => console.log('  -', row.data?.name, '| user_id:', row.user_id));
+    
     appState.events = (data||[]).map(row=>row.data);
   }catch(e){
     console.warn('fbLoadEvents exception:', e);

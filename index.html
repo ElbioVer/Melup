@@ -3987,12 +3987,22 @@ async function adminCargarUsuarios(){
         </div>
         <div class="user-row-meta">📧 ${u.email||'—'} · ${u.max_events} evento(s) · ${new Date(u.created_at).toLocaleDateString('es')}</div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
         <button class="btn btn-sm" style="${toggleStyle}"
           onclick="adminToggleAprobacion('${u.user_id}',${!aprobado})">
           ${toggleLabel}
         </button>
-        <button class="btn btn-ghost btn-sm" onclick="adminReenviar('${(u.label||'').replace(/'/g,"\'")}','${(u.email||'')}','${(u.temp_pass||'')}')">📋</button>
+        <button class="btn btn-ghost btn-sm" 
+          onclick="adminReenviar('${(u.label||'').replace(/'/g,"\'")}','${(u.email||'')}','${(u.temp_pass||'')}')"
+          title="Copiar credenciales">📋</button>
+        <button class="btn btn-sm" 
+          style="background:rgba(245,200,66,.1);color:#F5C842;border:1px solid rgba(245,200,66,.2);"
+          onclick="adminCambiarPass('${u.user_id}','${u.email||''}')"
+          title="Cambiar contraseña">🔑</button>
+        <button class="btn btn-sm"
+          style="background:rgba(139,92,246,.1);color:#A78BFA;border:1px solid rgba(139,92,246,.2);"
+          onclick="adminImpersonar('${u.email||''}','${u.temp_pass||''}')"
+          title="Ver como este usuario">👁</button>
         <button class="btn btn-sm" style="background:rgba(231,76,60,.1);color:#E74C3C;border:1px solid rgba(231,76,60,.2);" 
           onclick="adminEliminarUsuario('${u.user_id}','${u.email}')">✕</button>
       </div>
@@ -4880,6 +4890,145 @@ function confirmarFondoYAbrir(){
   const checkbox = document.getElementById('pres-bg-enabled');
   if(checkbox) checkbox.checked = true;
   sbSaveEvent(ev).then(()=> abrirSlideshow());
+}
+
+
+// ── CAMBIAR CONTRASEÑA ────────────────────────────────────────
+async function adminCambiarPass(userId, email){
+  const modal = document.createElement('div');
+  modal.id = 'pass-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:#1a1230;border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:28px;max-width:400px;width:100%;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-size:14px;font-weight:700;color:var(--cream);">🔑 Cambiar contraseña</div>
+        <button onclick="document.getElementById('pass-modal').remove()" 
+          style="background:none;border:none;color:var(--soft);font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <div style="font-size:11px;color:var(--soft);margin-bottom:16px;">📧 ${email}</div>
+      <div class="field" style="margin-bottom:12px;">
+        <label class="field-label">Nueva contraseña</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="new-pass-input" class="field-input" placeholder="Mínimo 6 caracteres" style="flex:1;">
+          <button onclick="
+            const chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+            let p='';for(let i=0;i<10;i++)p+=chars[Math.floor(Math.random()*chars.length)];
+            document.getElementById('new-pass-input').value=p;
+          " style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+                   color:var(--soft);padding:8px 10px;border-radius:4px;cursor:pointer;font-size:16px;">🎲</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button onclick="confirmarCambioPass('${userId}','${email}')"
+          style="flex:1;background:var(--grad);color:white;border:none;padding:11px;
+                 font-size:12px;font-weight:700;cursor:pointer;border-radius:4px;">
+          ✓ Cambiar contraseña
+        </button>
+      </div>
+      <div id="pass-status" style="font-size:11px;margin-top:10px;min-height:16px;"></div>
+      <div id="pass-result" style="display:none;margin-top:12px;background:rgba(39,174,96,.1);
+           border:1px solid rgba(39,174,96,.3);border-radius:4px;padding:12px;font-size:11px;
+           color:#6FCF97;line-height:1.8;"></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function confirmarCambioPass(userId, email){
+  const pass = document.getElementById('new-pass-input')?.value.trim();
+  const status = document.getElementById('pass-status');
+  if(!pass || pass.length < 6){
+    status.style.color='#FF7070';
+    status.textContent='La contraseña debe tener al menos 6 caracteres.';
+    return;
+  }
+
+  status.style.color='var(--soft)';
+  status.textContent='Cambiando contraseña...';
+
+  // Change via RPC
+  const { error } = await sb.rpc('admin_set_password', {
+    p_email: email, p_password: pass
+  });
+
+  if(error){
+    status.style.color='#FF7070';
+    status.textContent='Error: '+error.message;
+    return;
+  }
+
+  // Update temp_pass in profile
+  await sb.from('melup_user_profiles')
+    .update({ temp_pass: pass })
+    .eq('user_id', userId);
+
+  status.style.color='#6FCF97';
+  status.textContent='✅ Contraseña actualizada';
+
+  // Show message to copy
+  const appURL = 'https://elbiover.github.io/Melup/';
+  const msg = `Hola! Te actualicé la contraseña de Melup:\n\n🌐 ${appURL}\n📧 ${email}\n🔑 Nueva contraseña: ${pass}`;
+  const result = document.getElementById('pass-result');
+  result.style.display='block';
+  result.innerHTML = `
+    <strong style="color:white;">Nueva contraseña: ${pass}</strong><br>
+    <button onclick="navigator.clipboard.writeText('${msg.replace(/'/g,"\'")}').then(()=>toast('📋 Copiado'))"
+      style="margin-top:8px;background:rgba(39,174,96,.2);color:#6FCF97;border:1px solid rgba(39,174,96,.3);
+             padding:6px 14px;font-size:11px;cursor:pointer;border-radius:3px;width:100%;">
+      📋 Copiar mensaje para WhatsApp
+    </button>
+  `;
+}
+
+// ── IMPERSONAR / VER COMO USUARIO ─────────────────────────────
+async function adminImpersonar(email, pass){
+  if(!pass){
+    toast('Este usuario no tiene contraseña guardada. Restablecé la contraseña primero.', true);
+    return;
+  }
+
+  const confirmMsg = `¿Querés iniciar sesión como ${email}?\n\nSe cerrará tu sesión de admin temporalmente.\nPara volver, cerrá sesión y entrá de nuevo con tu cuenta.`;
+  if(!confirm(confirmMsg)) return;
+
+  // Sign out admin first
+  await sb.auth.signOut();
+  
+  // Sign in as user
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  
+  if(error){
+    // If failed, re-login as admin
+    toast('No se pudo iniciar sesión como ese usuario: '+error.message, true);
+    // Try to restore admin session
+    mostrarLogin();
+    return;
+  }
+
+  // Now logged in as user
+  sbUser = data.user;
+  toast('👁 Sesión iniciada como '+email+' — cerrá sesión para volver al admin');
+  
+  await cargarPerfilUsuario();
+  await fbLoadEvents();
+  startRealtime();
+  mostrarBadgeUsuario();
+  goTo('dashboard');
+
+  // Show banner reminding admin they are impersonating
+  const banner = document.createElement('div');
+  banner.id = 'impersonate-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#E74C3C;color:white;' +
+    'padding:10px 20px;font-size:12px;font-weight:700;text-align:center;z-index:999;' +
+    'display:flex;align-items:center;justify-content:center;gap:12px;';
+  banner.innerHTML = `
+    👁 Viendo como: <strong>${email}</strong>
+    <button onclick="cerrarSesion()" 
+      style="background:white;color:#E74C3C;border:none;padding:4px 12px;
+             border-radius:3px;cursor:pointer;font-size:11px;font-weight:700;">
+      Volver al admin
+    </button>
+  `;
+  document.body.appendChild(banner);
 }
 
 </script>

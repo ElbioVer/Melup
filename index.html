@@ -579,6 +579,118 @@ a{color:var(--gold);text-decoration:none;}
   font-family:'Cormorant Garamond',serif;
 }
 
+/* ── PHOTO FRAME ───────────────────────────────────── */
+.slide-frame-wrap{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  z-index:502;
+}
+.slide-frame-clean{
+  width:72vw;max-width:900px;height:80vh;
+  background:transparent;overflow:hidden;
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+}
+.slide-frame-polaroid{
+  background:#fff;
+  padding:18px 18px 64px 18px;
+  box-shadow:0 8px 40px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3);
+  border-radius:3px;
+  display:flex;flex-direction:column;align-items:center;
+  max-width:min(72vw,600px);
+  position:relative;
+}
+.slide-frame-polaroid-inner{
+  width:100%;max-height:70vh;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  background:#f0f0f0;
+}
+.slide-frame-polaroid-caption{
+  position:absolute;bottom:0;left:0;right:0;height:58px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(11px,1.6vw,17px);
+  color:#333;letter-spacing:.04em;padding:0 12px;text-align:center;
+}
+.slide-frame-img{
+  max-width:100%;max-height:70vh;
+  width:auto;height:auto;object-fit:contain;display:block;
+}
+.slide-frame-img.ken-burns{
+  animation:kenBurns var(--slide-dur,5s) ease-out forwards,fadeInSlide .7s ease;
+}
+
+/* ── DEDICATION BUBBLE ─────────────────────────────── */
+.slide-dedication{
+  position:absolute;z-index:545;
+  max-width:min(340px,38vw);
+  pointer-events:none;
+  animation:bubbleIn .5s cubic-bezier(.175,.885,.32,1.275) forwards,
+             bubbleOut .4s ease 5.5s forwards;
+}
+.slide-dedication-inner{
+  background:rgba(255,255,255,.93);
+  backdrop-filter:blur(10px);
+  border-radius:20px 20px 20px 4px;
+  padding:12px 16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(13px,1.8vw,20px);
+  color:#1a1230;line-height:1.5;position:relative;
+}
+.slide-dedication-inner::after{
+  content:'';position:absolute;bottom:-10px;left:18px;
+  border:10px solid transparent;
+  border-top-color:rgba(255,255,255,.93);
+  border-bottom:0;border-left:0;
+}
+.slide-dedication-author{
+  display:block;font-size:.75em;color:#8B5CF6;
+  font-weight:700;margin-top:5px;letter-spacing:.04em;
+}
+@keyframes bubbleIn{
+  from{opacity:0;transform:scale(.7) translateY(10px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
+}
+@keyframes bubbleOut{
+  from{opacity:1;transform:scale(1);}
+  to{opacity:0;transform:scale(.85);}
+}
+
+/* ── DEDICATION in guest form ───────────────────────── */
+.guest-ded-field{
+  margin-bottom:16px;
+  background:rgba(255,255,255,.04);
+  border:1.5px solid rgba(139,92,246,.3);
+  border-radius:6px;padding:14px 16px;
+}
+.guest-ded-field label{
+  display:flex;align-items:center;gap:7px;
+  font-size:13px;font-weight:700;letter-spacing:.04em;
+  color:#A78BFA;margin-bottom:10px;
+}
+.guest-ded-field label::before{content:"💬";font-size:16px;}
+.guest-ded-field label span{font-size:10px;color:rgba(167,139,250,.6);font-weight:400;margin-left:4px;}
+.guest-ded-field textarea{
+  width:100%;background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(139,92,246,.25);border-radius:4px;
+  padding:12px 14px;color:#F5F0E8;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  outline:none;resize:none;line-height:1.5;
+  transition:border-color .2s,background .2s;box-sizing:border-box;
+}
+.guest-ded-field textarea:focus{border-color:#8B5CF6;background:rgba(255,255,255,.12);}
+.guest-ded-field textarea::placeholder{color:rgba(255,255,255,.3);font-size:13px;}
+.guest-ded-chars{font-size:10px;color:rgba(167,139,250,.5);text-align:right;margin-top:4px;}
+/* Dedication badge in admin album card */
+.media-ded-badge{
+  position:absolute;top:5px;right:32px;
+  background:rgba(139,92,246,.85);color:white;
+  padding:2px 6px;font-size:8px;font-weight:700;
+  border-radius:9px;z-index:6;pointer-events:none;
+  max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
 
 /* ── LOGIN ─────────────────────────────────────────── */
 #login-screen{ background: linear-gradient(160deg,#0D0820 0%,#160830 100%); }
@@ -1289,6 +1401,32 @@ html, body { overflow-x: hidden; max-width: 100vw; }
             </label>
           </div>
         </div>
+
+        <!-- Marco de fotos -->
+        <div class="pres-section">
+          <div class="pres-section-title">🖼 Marco de fotos</div>
+          <div class="pres-section-desc">Define cómo se muestra cada foto en la presentación. El marco queda sobre el fondo dinámico.</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;">
+            <div id="frame-opt-none" onclick="seleccionarMarco('none')"
+              style="cursor:pointer;border:2px solid var(--gold);border-radius:8px;padding:14px 8px;text-align:center;background:rgba(245,200,66,.08);transition:.2s;">
+              <div style="font-size:22px;margin-bottom:5px;">⛶</div>
+              <div style="font-size:10px;font-weight:700;color:var(--cream);">Sin marco</div>
+              <div style="font-size:9px;color:var(--soft);margin-top:2px;">Foto a pantalla completa</div>
+            </div>
+            <div id="frame-opt-clean" onclick="seleccionarMarco('clean')"
+              style="cursor:pointer;border:2px solid transparent;border-radius:8px;padding:14px 8px;text-align:center;background:rgba(255,255,255,.04);transition:.2s;">
+              <div style="font-size:22px;margin-bottom:5px;">▭</div>
+              <div style="font-size:10px;font-weight:700;color:var(--cream);">Marco limpio</div>
+              <div style="font-size:9px;color:var(--soft);margin-top:2px;">Recuadro centrado</div>
+            </div>
+            <div id="frame-opt-polaroid" onclick="seleccionarMarco('polaroid')"
+              style="cursor:pointer;border:2px solid transparent;border-radius:8px;padding:14px 8px;text-align:center;background:rgba(255,255,255,.04);transition:.2s;">
+              <div style="font-size:22px;margin-bottom:5px;">🗒</div>
+              <div style="font-size:10px;font-weight:700;color:var(--cream);">Polaroid</div>
+              <div style="font-size:9px;color:var(--soft);margin-top:2px;">Con autor al pie</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="danger-zone">
         <h4>⚠ Zona de peligro</h4>
@@ -1340,6 +1478,13 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     <div class="guest-prog" id="g-prog">
       <div class="guest-prog-track"><div class="guest-prog-fill" id="g-prog-bar"></div></div>
       <div class="guest-prog-txt" id="g-prog-txt">Subiendo…</div>
+    </div>
+    <div class="guest-ded-field">
+      <label>Dedicatoria <span>— opcional</span></label>
+      <textarea id="g-dedicatoria" rows="3" maxlength="120"
+        placeholder="ej. ¡Feliz cumple Meli! Que la vida te llene de alegría… 🎉"
+        oninput="document.getElementById('g-ded-chars').textContent=(120-this.value.length)+' caracteres restantes'"></textarea>
+      <div class="guest-ded-chars" id="g-ded-chars">120 caracteres restantes</div>
     </div>
     <button class="btn-submit" onclick="gSubir()">Compartir con el álbum →</button>
     <div id="g-album-section" style="display:none;">
@@ -2053,8 +2198,9 @@ function renderAlbum(filtro){
       <button class="btn-rechazar" onclick="event.stopPropagation();moderarMedia(${gi},false)" title="Rechazar">✗</button>
     </div>`;
     const selClass = isSel ? ' selected' : '';
-    if(m.type==='video') return `<div class="media-item ${modClass}${selClass}" onclick="abrirLB(${gi})">${checkbox}${modBar}<video src="${m.src}" muted preload="metadata" onerror="eliminarMediaLocal(${gi})"></video><div class="vid-badge">▶</div><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
-    return `<div class="media-item ${modClass}${selClass}" onclick="abrirLB(${gi})">${checkbox}${modBar}<img src="${m.src}" loading="lazy" onerror="this.closest('.media-item').style.display='none';eliminarMediaLocal(${gi})"><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
+    const dedBadge = m.dedicatoria ? `<div class="media-ded-badge" title="${m.dedicatoria.replace(/"/g,'&quot;')}">💬 ${m.dedicatoria.slice(0,18)}${m.dedicatoria.length>18?'…':''}</div>` : '';
+    if(m.type==='video') return `<div class="media-item ${modClass}${selClass}" onclick="abrirLB(${gi})">${checkbox}${modBar}${dedBadge}<video src="${m.src}" muted preload="metadata" onerror="eliminarMediaLocal(${gi})"></video><div class="vid-badge">▶</div><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
+    return `<div class="media-item ${modClass}${selClass}" onclick="abrirLB(${gi})">${checkbox}${modBar}${dedBadge}<img src="${m.src}" loading="lazy" onerror="this.closest('.media-item').style.display='none';eliminarMediaLocal(${gi})"><div class="media-overlay">${m.author}${m.mesaNombre?' · '+m.mesaNombre:''}</div></div>`;
   }).join('');
   actualizarToolbar();
 }
@@ -2319,6 +2465,8 @@ function abrirVistaInvitado(mesaId,evId){
   else { mb.style.display='none'; }
   el('g-previews').style.display='none';el('g-previews').innerHTML='';
   el('g-prog').style.display='none';el('g-name').value='';
+  if(el('g-dedicatoria')){ el('g-dedicatoria').value=''; }
+  if(el('g-ded-chars')){ el('g-ded-chars').textContent='120 caracteres restantes'; }
   // Show back-to-admin button only when accessed from admin panel
   const backArea = el('g-back-area');
   if(evId && appState.events.find(e=>e.id===evId && e._fromAdmin)){
@@ -2384,6 +2532,9 @@ async function gSubir(){
     return;
   }
   const author = rawName;
+  // Validate dedicatoria before starting upload
+  const rawDedCheck = (el('g-dedicatoria')?.value||'').trim();
+  if(rawDedCheck && filtrarDedicatoria(rawDedCheck) === null) return; // blocked
   const ev=appState.events.find(e=>e.id===appState.guestEvId);
   if(!ev){toast('Evento no encontrado',true);return;}
   if(!appState.guestFiles.length){toast('Seleccioná al menos un archivo',true);return;}
@@ -2401,7 +2552,9 @@ async function gSubir(){
     txt.textContent='Subiendo '+(done+1)+' de '+total+'…';
     try{
       const src=await subirCloudinary(file,ev.name,mesaNombreFolder,author);
-      const mediaItem = {id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now(),aprobada:null};
+      const rawDed = (el('g-dedicatoria')?.value||'').trim();
+      const dedicatoria = rawDed ? filtrarDedicatoria(rawDed) : null;
+      const mediaItem = {id:uid(),src,type,author,time:new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),mesaId:mesaIdForRecord,mesaNombre:mesaNombreFolder,uploadedAt:Date.now(),aprobada:null,dedicatoria};
       ev.media.push(mediaItem);
       // Track this upload as mine for this session
       if(!window.myUploadedIds) window.myUploadedIds = new Set();
@@ -2413,6 +2566,8 @@ async function gSubir(){
   }
   txt.textContent='¡'+done+' archivo(s) compartidos! ✓';
   appState.guestFiles=[];
+  if(el('g-dedicatoria')){ el('g-dedicatoria').value=''; }
+  if(el('g-ded-chars')){ el('g-ded-chars').textContent='120 caracteres restantes'; }
   // Track this session's uploaded photo IDs
   if(!window.myUploadedIds) window.myUploadedIds = new Set();
   el('g-previews').style.display='none';el('g-previews').innerHTML='';
@@ -3080,6 +3235,9 @@ function cerrarSlideshow(){
   clearTimeout(slideState.timer);
   clearTimeout(slideState.progressTimer);
   detenerPollSlideshow();
+  if(_dedTimeout){ clearTimeout(_dedTimeout); _dedTimeout=null; }
+  const dedBubble = document.getElementById('slide-ded-bubble');
+  if(dedBubble) dedBubble.remove();
   if(_logoFloatInterval){ clearInterval(_logoFloatInterval); _logoFloatInterval=null; }
   document.querySelectorAll('.slide-float-logo').forEach(e=>e.remove());
   const bgLayer = document.getElementById('slide-bg-layer');
@@ -3103,17 +3261,17 @@ function mostrarSlide(){
     const dur = (slideState.duration/1000)+'s';
     const paused = slideState.paused ? 'paused' : 'running';
     if(m.type === 'video'){
-      container.innerHTML = `<video class="slide-video" src="${m.src}" autoplay muted playsinline
-        onended="slideSiguiente()" style="height:100vh;width:auto;max-width:100vw;object-fit:contain;"></video>`;
+      container.innerHTML = renderSlideMedia(m, dur, slideState.paused);
       if(slideState.paused){
         const vid = container.querySelector('video');
         if(vid) vid.pause();
       }
     } else {
-      container.innerHTML = `<img class="slide-img" src="${m.src}"
-        style="--slide-dur:${dur};animation-play-state:${paused};">`;
+      container.innerHTML = renderSlideMedia(m, dur, slideState.paused);
     }
     container.style.opacity = '1';
+    // Show dedication bubble if present
+    mostrarDedicatoria(m);
   }, 80);
 
   el('slide-author').textContent = m.author ? '📷 ' + m.author + (m.mesaNombre ? ' · ' + m.mesaNombre : '') : '';
@@ -3524,7 +3682,125 @@ async function aprobarSeleccionadas(){
 }
 
 
-// ── AGREGAR MEDIA POR URL MANUAL ─────────────────────────────
+// ── FILTRO DE PALABRAS INAPROPIADAS ──────────────────────────
+const PALABRAS_BLOQUEADAS = [
+  'puta','puto','mierda','culo','concha','pija','verga','pendejo','pelotudo',
+  'boludo','hdp','forro','cagón','cagon','putita','zorra','perra','idiota',
+  'estupido','estúpido','imbecil','imbécil','hijo de','fuck','shit','ass',
+  'bitch','dick','cock','cunt','bastard'
+];
+
+function filtrarDedicatoria(texto){
+  const lower = texto.toLowerCase();
+  for(const word of PALABRAS_BLOQUEADAS){
+    if(lower.includes(word)){
+      toast('⚠️ La dedicatoria contiene palabras no permitidas. Por favor revisala.', true);
+      return null; // block upload
+    }
+  }
+  return texto.trim();
+}
+
+// ── MARCO DE FOTOS ────────────────────────────────────────────
+function seleccionarMarco(style){
+  const ev = appState.events.find(e=>e.id===appState.currentId);
+  if(!ev) return;
+  if(!ev.presConfig) ev.presConfig = {};
+  ev.presConfig.frameStyle = style;
+  actualizarUIMarco(style);
+  sbSaveEvent(ev);
+  const labels = {none:'Sin marco', clean:'Marco limpio', polaroid:'Polaroid'};
+  toast('✅ Marco: '+labels[style]);
+}
+
+function actualizarUIMarco(style){
+  ['none','clean','polaroid'].forEach(s=>{
+    const el_ = el('frame-opt-'+s);
+    if(!el_) return;
+    const active = s === style;
+    el_.style.borderColor = active ? 'var(--gold)' : 'transparent';
+    el_.style.background   = active ? 'rgba(245,200,66,.08)' : 'rgba(255,255,255,.04)';
+  });
+}
+
+// ── DEDICATORIA EN SLIDESHOW ──────────────────────────────────
+let _dedTimeout = null;
+
+function mostrarDedicatoria(m){
+  // Remove any existing bubble
+  const old = document.getElementById('slide-ded-bubble');
+  if(old) old.remove();
+  if(_dedTimeout){ clearTimeout(_dedTimeout); _dedTimeout=null; }
+  if(!m || !m.dedicatoria) return;
+
+  const screen = el('slideshow-screen');
+  if(!screen) return;
+
+  const bubble = document.createElement('div');
+  bubble.id = 'slide-ded-bubble';
+  bubble.className = 'slide-dedication';
+  // Position: upper-left quadrant
+  bubble.style.cssText = 'top:18%;left:4%;';
+  bubble.innerHTML = `
+    <div class="slide-dedication-inner">
+      ${escapeHtml(m.dedicatoria)}
+      <span class="slide-dedication-author">— ${escapeHtml(m.author||'')}</span>
+    </div>`;
+  screen.appendChild(bubble);
+
+  // Auto-remove after animation ends (bubbleOut at 5.5s + 0.4s = 5.9s)
+  _dedTimeout = setTimeout(()=>{ bubble.remove(); _dedTimeout=null; }, 6200);
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── HELPER: render image/video inside frame ───────────────────
+function renderSlideMedia(m, dur, paused){
+  const frameStyle = (appState.events.find(e=>e.id===slideState.evId)?.presConfig?.frameStyle) || 'none';
+  const playState  = paused ? 'paused' : 'running';
+
+  if(m.type === 'video'){
+    if(frameStyle === 'none'){
+      return `<video class="slide-video" src="${m.src}" autoplay muted playsinline
+        onended="slideSiguiente()" style="height:100vh;width:auto;max-width:100vw;object-fit:contain;"></video>`;
+    }
+    // framed video
+    const inner = `<video src="${m.src}" autoplay muted playsinline
+      onended="slideSiguiente()"
+      style="max-width:100%;max-height:70vh;object-fit:contain;display:block;"></video>`;
+    return buildFrameHTML(frameStyle, inner, m.author, false);
+  }
+
+  // image
+  if(frameStyle === 'none'){
+    return `<img class="slide-img" src="${m.src}"
+      style="--slide-dur:${dur};animation-play-state:${playState};">`;
+  }
+  const imgTag = `<img class="slide-frame-img ken-burns" src="${m.src}"
+    style="--slide-dur:${dur};animation-play-state:${playState};">`;
+  return buildFrameHTML(frameStyle, imgTag, m.author, true);
+}
+
+function buildFrameHTML(frameStyle, innerHTML, author, isImg){
+  if(frameStyle === 'clean'){
+    return `<div class="slide-frame-wrap">
+      <div class="slide-frame-clean">${innerHTML}</div>
+    </div>`;
+  }
+  if(frameStyle === 'polaroid'){
+    return `<div class="slide-frame-wrap">
+      <div class="slide-frame-polaroid">
+        <div class="slide-frame-polaroid-inner">${innerHTML}</div>
+        <div class="slide-frame-polaroid-caption">${escapeHtml(author||'')}</div>
+      </div>
+    </div>`;
+  }
+  return innerHTML;
+}
 async function agregarURLManual(){
   const ev = appState.events.find(e=>e.id===appState.currentId);
   if(!ev){ toast('Abrí un evento primero', true); return; }
@@ -4326,6 +4602,7 @@ function guardarConfigPres(){
     inviteText:  el('pres-invite-text')?.value || '📸 ¡Escaneá el QR de tu mesa y subí tus fotos! Así armamos juntos el álbum del evento en tiempo real.',
     inviteColor: ev.presConfig?.inviteColor || '#F5C842',
     sidesEnabled: el('pres-sides-enabled')?.checked !== false,
+    frameStyle:  ev.presConfig?.frameStyle || 'none',
   };
   slideState.duration = ev.presConfig.duration * 1000;
   sbSaveEvent(ev);
@@ -4343,6 +4620,8 @@ function cargarConfigPres(){
   if(el('pres-invite-text'))  el('pres-invite-text').value     = cfg.inviteText || '📸 ¡Escaneá el QR de tu mesa y subí tus fotos! Así armamos juntos el álbum del evento en tiempo real.';
   if(el('pres-sides-enabled')) el('pres-sides-enabled').checked = cfg.sidesEnabled !== false;
   slideState.duration = (cfg.duration || 5) * 1000;
+  // Load frame style selector
+  actualizarUIMarco(cfg.frameStyle || 'none');
 
   // Show custom bg preview
   if(cfg.bgUrl){

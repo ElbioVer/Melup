@@ -1812,6 +1812,7 @@ function stopRealtime(){
 const CLD_CLOUD  = 'dmnp4p7gh';
 const CLD_PRESET = 'Melup1306';
 const BASE_URL   = 'https://elbiover.github.io/Melup/';
+const CLD_DELETE_FN = SUPABASE_URL + '/functions/v1/cloudinary-delete';
 // ══════════════════════════════════════════════
 const CLD_ON = (CLD_CLOUD !== 'TU_CLOUD_NAME');
 const MAX_IMG = 50*1024*1024, MAX_VID = 200*1024*1024;
@@ -2417,8 +2418,10 @@ function ejecutarEliminar(){
     toast('"'+name+'" eliminado ✓');
     renderDashboard();
   });
-  // Also delete guest uploads for this event
+  // Delete guest uploads from Supabase
   sb.from('melup_guest_uploads').delete().eq('event_id',id).then(()=>{});
+  // Delete entire event folder from Cloudinary (fire and forget)
+  if(ev && ev.name) cloudinaryDelete('folder', ev.name);
   goTo('dashboard');
 }
 
@@ -2987,6 +2990,8 @@ function eliminarMediaLocal(globalIdx){
   const ev = appState.events.find(e=>e.id===appState.currentId);
   if(!ev || globalIdx<0 || globalIdx>=ev.media.length) return;
   const item = ev.media[globalIdx];
+  // Delete from Cloudinary if it has a cloudinaryId
+  if(item && item.cloudinaryId) cloudinaryDelete('file', item.cloudinaryId);
   ev.media.splice(globalIdx, 1);
   saveState();
   renderAlbum();
@@ -3645,18 +3650,23 @@ async function eliminarSeleccionadas(){
   if(!ev || !window.albumSelected || !window.albumSelected.size) return;
   if(!confirm('¿Eliminar '+window.albumSelected.size+' elemento(s) del álbum?')) return;
   const indices = Array.from(window.albumSelected).sort((a,b)=>b-a);
-  
+
+  // Collect cloudinaryIds before splicing
+  const toDeleteFromCld = indices
+    .map(i => ev.media[i]?.cloudinaryId)
+    .filter(Boolean);
+
   // Track deleted IDs to prevent re-import
   if(!ev.deletedMediaIds) ev.deletedMediaIds = [];
-  indices.forEach(i=>{ 
+  indices.forEach(i=>{
     if(ev.media[i]) ev.deletedMediaIds.push(ev.media[i].id);
-    ev.media.splice(i,1); 
+    ev.media.splice(i,1);
   });
-  
+
   window.albumSelected = new Set();
   await sbSaveEvent(ev);
-  
-  // Also delete from melup_guest_uploads
+
+  // Delete from melup_guest_uploads
   const deletedIds = ev.deletedMediaIds;
   if(deletedIds.length){
     await sb.from('melup_guest_uploads')
@@ -3664,7 +3674,12 @@ async function eliminarSeleccionadas(){
       .eq('event_id', ev.id)
       .in('media_item->>id', deletedIds.slice(-50));
   }
-  
+
+  // Delete from Cloudinary (fire and forget)
+  for(const pid of toDeleteFromCld){
+    cloudinaryDelete('file', pid);
+  }
+
   renderAlbum();
   renderStats();
   toast('🗑 '+indices.length+' elemento(s) eliminado(s)');
@@ -3681,6 +3696,33 @@ async function aprobarSeleccionadas(){
   toast('✅ ' + count + ' foto(s) aprobadas — aparecerán en la presentación');
 }
 
+
+// ── CLOUDINARY DELETE (via Edge Function) ────────────────────────────
+async function cloudinaryDelete(mode, idOrFolder){
+  if(!sbUser) return;
+  try{
+    const session = (await sb.auth.getSession()).data.session;
+    if(!session) return;
+    const res = await fetch(CLD_DELETE_FN, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+      },
+      body: JSON.stringify(
+        mode === 'file'
+          ? { mode: 'file',   public_id: idOrFolder }
+          : { mode: 'folder', folder:    idOrFolder }
+      ),
+    });
+    const data = await res.json();
+    if(!res.ok) console.warn('cloudinaryDelete error:', data);
+    else console.log('✅ Cloudinary delete:', mode, idOrFolder, data);
+    return data;
+  }catch(e){
+    console.warn('cloudinaryDelete exception:', e);
+  }
+}
 
 // ── FILTRO DE PALABRAS INAPROPIADAS ──────────────────────────
 const PALABRAS_BLOQUEADAS = [

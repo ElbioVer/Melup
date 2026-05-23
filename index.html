@@ -3222,6 +3222,19 @@ function checkShowURL(){
       el('slide-logo').src = LOGO_B64;
       el('slideshow-screen').classList.add('active');
 
+      // Apply background, invite text and side panels from presConfig
+      aplicarFondoSlide(null, ev);
+      actualizarTextoInvitacion(ev);
+      actualizarLaterales(ev);
+
+      // Request fullscreen automatically (browsers require a user gesture,
+      // but on a direct link open this fires synchronously before the first
+      // paint which is enough for most desktop browsers)
+      document.documentElement.requestFullscreen?.().catch(()=>{
+        // Fallback: try on the slideshow element itself
+        el('slideshow-screen').requestFullscreen?.().catch(()=>{});
+      });
+
       if(!slideState.media.length){
         el('slide-media').innerHTML = '<div class="slide-empty">Esperando fotos aprobadas...<br><span style="font-size:13px;opacity:.5;">El admin está moderando el álbum</span></div>';
       } else {
@@ -3233,6 +3246,27 @@ function checkShowURL(){
   return true;
 }
 
+// Toggle fullscreen
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen?.().catch(()=>{
+      el('slideshow-screen').requestFullscreen?.().catch(()=>{});
+    });
+    const btn = el('slide-fs-btn');
+    if(btn) btn.textContent = '⛶ Salir pantalla completa';
+  } else {
+    document.exitFullscreen?.();
+    const btn = el('slide-fs-btn');
+    if(btn) btn.textContent = '⛶ Pantalla completa';
+  }
+}
+
+// Update fullscreen button label when fullscreen changes externally (e.g. Esc key)
+document.addEventListener('fullscreenchange', ()=>{
+  const btn = el('slide-fs-btn');
+  if(btn) btn.textContent = document.fullscreenElement ? '⛶ Salir pantalla completa' : '⛶ Pantalla completa';
+});
+
 // Keyboard controls for slideshow
 document.addEventListener('keydown', e=>{
   if(!el('slideshow-screen').classList.contains('active')) return;
@@ -3240,6 +3274,7 @@ document.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft') slideAnterior();
   if(e.key==='Escape') cerrarSlideshow();
   if(e.key==='p'||e.key==='P') toggleSlidePause();
+  if(e.key==='f'||e.key==='F') toggleFullscreen();
 });
 
 
@@ -3418,6 +3453,7 @@ async function agregarURLManual(){
     <button class="slide-btn" id="slide-pause-btn" onclick="toggleSlidePause()" style="z-index:601;cursor:pointer;">⏸ Pausar</button>
     <button class="slide-btn" onclick="slideAnterior()" style="z-index:601;cursor:pointer;">◀</button>
     <button class="slide-btn" onclick="slideSiguiente()" style="z-index:601;cursor:pointer;">▶</button>
+    <button class="slide-btn" id="slide-fs-btn" onclick="toggleFullscreen()" style="z-index:601;cursor:pointer;" title="Pantalla completa">⛶ Pantalla completa</button>
   </div>
   <div class="slide-counter" style="z-index:560;" id="slide-counter"></div>
   <div id="slide-media" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:501;"></div>

@@ -1637,9 +1637,17 @@ function startRealtime(){
           if(idx>=0) appState.events[idx]=newData;
           else appState.events.unshift(newData);
         }
-        // Refresh if dashboard is visible
+        // Refresh dashboard if visible
         const dash=el('dashboard');
         if(dash&&dash.classList.contains('active')) renderDashboard();
+        // Refresh album/stats if event-detail is open for this event
+        if(newData && newData.id === appState.currentId){
+          const detail=el('event-detail');
+          if(detail && detail.classList.contains('active')){
+            renderAlbum();
+            renderStats();
+          }
+        }
       }
     )
     .subscribe();
@@ -1707,6 +1715,8 @@ function goTo(screen){
   if(adminScreens.includes(screen) && !sbUser){
     mostrarLogin(); return;
   }
+  // Stop guest sync when leaving guest view
+  if(screen !== 'guest-view') detenerSyncGuest();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   el(screen).classList.add('active');
   window.scrollTo(0,0);
@@ -2320,6 +2330,8 @@ function abrirVistaInvitado(mesaId,evId){
   // Auto-clean: remove any previously stored media that no longer loads
   validarMediaGuest();
   goTo('guest-view');
+  // Start polling Supabase so the guest view stays updated
+  iniciarSyncGuest(id);
 }
 
 async function validarMediaGuest(){
@@ -3013,9 +3025,61 @@ function abrirSlideshow(){
   escucharNuevasAprobadas();
 }
 
+// ── SLIDESHOW POLLING FALLBACK ────────────────────────────────
+// Supabase Realtime payloads can be truncated when the event data is large.
+// This polling fallback ensures the slideshow always stays up to date.
+let _slidePollInterval = null;
+
+function iniciarPollSlideshow(evId){
+  detenerPollSlideshow();
+  async function poll(){
+    try{
+      const { data, error } = await sb
+        .from('melup_events').select('data').eq('id', evId).single();
+      if(error || !data || !data.data) return;
+      const newEv = data.data;
+      const prevLen = slideState.media.length;
+
+      // Update local state
+      const idx = appState.events.findIndex(e=>e.id===newEv.id);
+      if(idx>=0) appState.events[idx]=newEv; else appState.events.push(newEv);
+
+      // Recalculate approved media
+      const nuevasAprobadas = getMediaAprobada(newEv);
+      if(nuevasAprobadas.length === prevLen) return; // nothing changed
+
+      const prevIds = new Set(slideState.media.map(m=>m.id));
+      const agregadas = nuevasAprobadas.filter(m=>!prevIds.has(m.id));
+      slideState.media = nuevasAprobadas;
+
+      aplicarFondoSlide(null, newEv);
+      actualizarTextoInvitacion(newEv);
+      actualizarLaterales(newEv);
+
+      if(slideState.idx >= slideState.media.length)
+        slideState.idx = Math.max(0, slideState.media.length - 1);
+      if(el('slide-counter'))
+        el('slide-counter').textContent = (slideState.idx+1)+' / '+slideState.media.length;
+
+      if(agregadas.length > 0 && !slideState.paused){
+        toast('📸 '+agregadas.length+' foto(s) nueva(s) en la presentación');
+        slideState.idx = slideState.media.length - 1;
+        mostrarSlide();
+        iniciarAutoplay();
+      }
+    }catch(e){ /* silent */ }
+  }
+  _slidePollInterval = setInterval(poll, 10000); // every 10s
+}
+
+function detenerPollSlideshow(){
+  if(_slidePollInterval){ clearInterval(_slidePollInterval); _slidePollInterval=null; }
+}
+
 function cerrarSlideshow(){
   clearTimeout(slideState.timer);
   clearTimeout(slideState.progressTimer);
+  detenerPollSlideshow();
   if(_logoFloatInterval){ clearInterval(_logoFloatInterval); _logoFloatInterval=null; }
   document.querySelectorAll('.slide-float-logo').forEach(e=>e.remove());
   const bgLayer = document.getElementById('slide-bg-layer');
@@ -3124,6 +3188,8 @@ function toggleSlidePause(){
 // Listen for newly approved photos in real time
 function escucharNuevasAprobadas(){
   if(slideState.realtimeSub) sb.removeChannel(slideState.realtimeSub);
+  // Also start a polling fallback for when realtime payload is too large
+  iniciarPollSlideshow(slideState.evId);
 
   slideState.realtimeSub = sb
     .channel('slideshow-'+slideState.evId)
@@ -3278,7 +3344,43 @@ document.addEventListener('keydown', e=>{
 });
 
 
-// ── GUEST UPLOAD TO SUPABASE ─────────────────────────────────
+// ── GUEST REALTIME SYNC ───────────────────────────────────────
+// Keeps the guest view up-to-date with the latest event data from Supabase
+let guestSyncInterval = null;
+
+function iniciarSyncGuest(evId){
+  detenerSyncGuest();
+  async function sync(){
+    try{
+      const { data, error } = await sb
+        .from('melup_events')
+        .select('data')
+        .eq('id', evId)
+        .single();
+      if(error || !data || !data.data) return;
+      const newEv = data.data;
+      const idx = appState.events.findIndex(e=>e.id===evId);
+      if(idx>=0){
+        const prev = appState.events[idx];
+        // Only update if media count changed
+        if((newEv.media||[]).length !== (prev.media||[]).length){
+          appState.events[idx] = newEv;
+          // Merge uploaded IDs so guest still sees their own photos
+          if(window.myUploadedIds && window.myUploadedIds.size){
+            newEv.media.forEach(m=>{ if(window.myUploadedIds.has(m.id)) window.myUploadedIds.add(m.id); });
+          }
+          renderGuestAlbum();
+        }
+      }
+    }catch(e){ /* silent */ }
+  }
+  sync(); // immediate first sync
+  guestSyncInterval = setInterval(sync, 15000); // then every 15s
+}
+
+function detenerSyncGuest(){
+  if(guestSyncInterval){ clearInterval(guestSyncInterval); guestSyncInterval=null; }
+}
 async function guardarUploadInvitado(eventId, mediaItem){
   try{
     const {data, error} = await sb.from('melup_guest_uploads').insert({

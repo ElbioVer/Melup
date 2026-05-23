@@ -2270,10 +2270,20 @@ async function subirCloudinary(file, evName, mesaName, authorName){
   let folder = evName;
   if(mesaName)   folder += '/' + mesaName;
   if(authorName && authorName !== 'Invitado') folder += '/' + authorName;
+
+  // Generate a content-based hash to avoid duplicates:
+  // Same file uploaded twice → same hash → Cloudinary overwrites instead of creating a new file
+  const hashHex = await fileHash(fileToUpload);
+  const ext = fileToUpload.name.split('.').pop() || 'jpg';
+  const publicId = folder + '/' + hashHex + '.' + ext;
+
   const fd = new FormData();
-  fd.append('file',         fileToUpload);
-  fd.append('upload_preset',CLD_PRESET);
-  fd.append('folder',       folder);
+  fd.append('file',           fileToUpload);
+  fd.append('upload_preset',  CLD_PRESET);
+  fd.append('folder',         folder);
+  fd.append('public_id',      hashHex + '.' + ext);
+  fd.append('overwrite',      'true');
+  fd.append('unique_filename','false');
   // Add tags for easy filtering in Cloudinary dashboard
   const tags = [evName];
   if(mesaName)   tags.push(mesaName);
@@ -2286,6 +2296,16 @@ async function subirCloudinary(file, evName, mesaName, authorName){
   const res = await fetch('https://api.cloudinary.com/v1_1/'+CLD_CLOUD+'/'+rt+'/upload',{method:'POST',body:fd});
   if(!res.ok) throw new Error('Upload error '+res.status);
   return (await res.json()).secure_url;
+}
+
+// Generate SHA-256 hash of file content (first 2MB for speed on large files)
+async function fileHash(file){
+  const CHUNK = 2 * 1024 * 1024; // 2MB
+  const blob = file.slice(0, CHUNK);
+  const buf  = await blob.arrayBuffer();
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf))
+    .map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 32);
 }
 
 // ADMIN UPLOAD

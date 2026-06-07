@@ -2455,7 +2455,9 @@ function abrirVistaInvitado(mesaId,evId){
   appState.guestFiles=[];
   // Track this session's uploaded photo IDs
   if(!window.myUploadedIds) window.myUploadedIds = new Set();
-  appState.guestMesaNombre=null;
+  // Only reset guestMesaNombre if there's no mesa for this session
+  // (it may have been set from the QR URL before calling this function)
+  if(!mesaId) appState.guestMesaNombre=null;
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');
   if(ev.coverImage){

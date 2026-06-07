@@ -2282,8 +2282,6 @@ async function subirCloudinary(file, evName, mesaName, authorName){
   fd.append('upload_preset',  CLD_PRESET);
   fd.append('folder',         folder);
   fd.append('public_id',      hashHex + '.' + ext);
-  fd.append('overwrite',      'true');
-  fd.append('unique_filename','false');
   // Add tags for easy filtering in Cloudinary dashboard
   const tags = [evName];
   if(mesaName)   tags.push(mesaName);
@@ -2455,9 +2453,7 @@ function abrirVistaInvitado(mesaId,evId){
   appState.guestFiles=[];
   // Track this session's uploaded photo IDs
   if(!window.myUploadedIds) window.myUploadedIds = new Set();
-  // Only reset guestMesaNombre if there's no mesa for this session
-  // (it may have been set from the QR URL before calling this function)
-  if(!mesaId) appState.guestMesaNombre=null;
+  appState.guestMesaNombre=null;
   const t=TMPLS[ev.template]||TMPLS.rosa;
   const gi=el('g-banner-icon');
   if(ev.coverImage){

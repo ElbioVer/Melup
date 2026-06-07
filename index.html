@@ -1863,6 +1863,8 @@ function goTo(screen){
   }
   // Stop guest sync when leaving guest view
   if(screen !== 'guest-view') detenerSyncGuest();
+  // Stop admin poll when leaving event detail
+  if(screen !== 'event-detail' && typeof detenerPollAdmin==='function') detenerPollAdmin();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   el(screen).classList.add('active');
   window.scrollTo(0,0);
@@ -2061,7 +2063,8 @@ function abrirEvento(id){
   switchTab('qrs');
   goTo('event-detail');
   setTimeout(()=>{ if(typeof escucharUploadsInvitados==='function'&&sbUser) escucharUploadsInvitados(appState.currentId); },100);
-  setTimeout(()=>{ if(typeof cargarConfigPres==='function') cargarConfigPres(); },200);
+  setTimeout(()=>{ if(typeof iniciarPollAdmin==='function'&&sbUser) iniciarPollAdmin(appState.currentId); },200);
+  setTimeout(()=>{ if(typeof cargarConfigPres==='function') cargarConfigPres(); },300);
 }
 
 // TABS
@@ -3527,6 +3530,58 @@ document.addEventListener('keydown', e=>{
 
 // ── GUEST REALTIME SYNC ───────────────────────────────────────
 // Keeps the guest view up-to-date with the latest event data from Supabase
+// ── POLLING FALLBACK PARA PANEL ADMIN (moderación) ───────────
+let adminPollInterval = null;
+
+function iniciarPollAdmin(evId){
+  detenerPollAdmin();
+  async function poll(){
+    try{
+      const { data, error } = await sb
+        .from('melup_guest_uploads')
+        .select('media_item')
+        .eq('event_id', evId);
+      if(error || !data) return;
+      const ev = appState.events.find(e=>e.id===evId);
+      if(!ev) return;
+      const deletedIds = ev.deletedMediaIds || [];
+      let nuevas = 0;
+      data.forEach(row=>{
+        const item = row.media_item;
+        if(!item || ev.media.find(m=>m.id===item.id) || deletedIds.includes(item.id)) return;
+        ev.media.push(item);
+        nuevas++;
+      });
+      if(nuevas > 0){
+        await sbSaveEvent(ev);
+        const detail = el('event-detail');
+        if(detail && detail.classList.contains('active') && appState.currentId===evId){
+          renderAlbum();
+          renderStats();
+          toast('📸 '+nuevas+' foto(s) nueva(s)');
+        }
+      }
+    }catch(e){ /* silent */ }
+  }
+
+  // Rápido al inicio (cada 3s por 60s), luego cada 15s
+  poll();
+  let fastCount = 0;
+  const fastTimer = setInterval(()=>{
+    poll();
+    fastCount++;
+    if(fastCount >= 20){
+      clearInterval(fastTimer);
+      if(adminPollInterval === fastTimer) adminPollInterval = setInterval(poll, 15000);
+    }
+  }, 3000);
+  adminPollInterval = fastTimer;
+}
+
+function detenerPollAdmin(){
+  if(adminPollInterval){ clearInterval(adminPollInterval); adminPollInterval=null; }
+}
+
 let guestSyncInterval = null;
 
 function iniciarSyncGuest(evId){
